@@ -1,0 +1,17 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "permission": {
+    "skill": {
+      "*": "ask",
+      "playwright-cli": "allow",
+      "frontend-design": "allow",
+      "frontend-ui-engineering": "allow",
+      "performance-optimization": "allow",
+      "security-and-hardening": "allow",
+      "code-review-and-quality": "allow",
+      "debugging-and-error-recovery": "allow",
+      "git-workflow-and-versioning": "allow",
+      "novera-edtech": "allow"
+    }
+  }
+}

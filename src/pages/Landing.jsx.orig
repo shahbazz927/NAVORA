@@ -1,0 +1,327 @@
+import { Link } from 'react-router-dom';
+import {
+  ArrowRight,
+  Sparkles,
+  Compass,
+  Scale,
+  MessageCircle,
+  BookOpen,
+} from 'lucide-react';
+import Button from '../components/Button';
+import { FadeIn, StaggerContainer, StaggerItem } from '../components/AnimatedPage';
+import { useScrollTop } from '../hooks/useLocalStorage';
+import { personas } from '../data/personas';
+import HeroStudents from '../components/illustrations/HeroStudents';
+import JourneyIllustration from '../components/illustrations/JourneyIllustration';
+import PersonaIllustration from '../components/illustrations/PersonaIllustration';
+
+const journey = [
+  {
+    title: 'Confusion',
+    copy: 'Every decision — stream, course, college — feels permanent. Lakhs of students choose in the dark every year.',
+    illustration: 'confusion',
+  },
+  {
+    title: 'Understanding',
+    copy: 'One honest conversation about what you enjoy, how you learn, and what actually matters.',
+    illustration: 'understanding',
+  },
+  {
+    title: 'Clarity',
+    copy: 'Your options, compared on the things that matter to you — not a generic list of courses.',
+    illustration: 'clarity',
+  },
+  {
+    title: 'Confidence',
+    copy: 'You move forward knowing the choice is yours, and that it was made well.',
+    illustration: 'confidence',
+  },
+];
+
+const reasons = [
+  {
+    icon: Sparkles,
+    title: 'Built around you',
+    copy: 'Your interests, strengths, learning style, and budget — not a one-size-fits-all list.',
+  },
+  {
+    icon: Scale,
+    title: 'Compare honestly',
+    copy: 'Weights, trade-offs, and costs shown plainly. No exaggerated promises, no pressure.',
+  },
+  {
+    icon: MessageCircle,
+    title: 'Ask when you\'re stuck',
+    copy: 'An AI advisor that answers follow-ups in plain language, whenever questions come up.',
+  },
+];
+
+export default function Landing() {
+  useScrollTop();
+
+  return (
+    <div className="bg-paper-gradient">
+      {/* ── Hero ─────────────────────────────────────────── */}
+      <section className="relative overflow-hidden">
+        <div className="max-w-6xl mx-auto px-5 sm:px-8 pt-20 pb-24 lg:pt-28 lg:pb-32">
+          <div className="grid lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+            <FadeIn className="lg:col-span-7">
+              <p className="eyebrow text-brand-600 mb-5 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-spark-500" />
+                Guidance for learning, made human
+              </p>
+
+              <h1 className="font-display font-medium text-[2.6rem] leading-[1.05] sm:text-6xl lg:text-[4.2rem] text-ink text-balance tracking-[-0.02em]">
+                Choosing your future shouldn&rsquo;t feel{' '}
+                <em className="font-display italic text-spark">like a gamble</em>.
+              </h1>
+
+              <p className="mt-6 text-lg text-ink-2 leading-relaxed max-w-xl">
+                Stream, course, college, career — every choice feels permanent, and
+                everyone has an opinion. NAVORA helps you understand your real options,
+                compare them honestly, and decide with confidence.
+              </p>
+
+              <div className="mt-8 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                <Link to="/get-started">
+                  <Button size="lg">
+                    Start your path
+                    <ArrowRight className="w-4 h-4" />
+                  </Button>
+                </Link>
+                <Link to="/advisor">
+                  <Button size="lg" variant="secondary">
+                    Ask the AI advisor
+                  </Button>
+                </Link>
+              </div>
+
+              <p className="mt-5 text-sm text-ink-3 flex items-center gap-2">
+                <Check className="w-4 h-4 text-success" />
+                Free, private, and takes about two minutes
+              </p>
+            </FadeIn>
+
+            <FadeIn delay={0.15} className="lg:col-span-5">
+              <div className="relative">
+                <div className="absolute -inset-6 bg-gradient-to-br from-brand-100/60 to-spark-100/50 rounded-[2rem] rotate-1" />
+                <div
+                  className="absolute -right-6 hidden lg:block w-48 xl:w-52 pointer-events-none"
+                  style={{ top: '-68px' }}
+                >
+                  <HeroStudents />
+                </div>
+                <div className="relative bg-surface border border-line rounded-2xl shadow-xl p-6 sm:p-7">
+                  <div className="flex items-center gap-2 pb-5 border-b border-line">
+                    <span className="flex gap-1">
+                      <span className="w-2 h-2 rounded-full bg-spark-200" />
+                      <span className="w-2 h-2 rounded-full bg-spark-200" />
+                      <span className="w-2 h-2 rounded-full bg-spark-200" />
+                    </span>
+                    <span className="ml-2 text-xs text-ink-3 font-medium">NAVORA · your assessment</span>
+                  </div>
+
+                  <div className="py-5">
+                    <p className="eyebrow text-ink-3 mb-2">Question 2 of 5</p>
+                    <p className="font-ui font-semibold text-ink text-lg leading-snug">
+                      How do you prefer to learn new things?
+                    </p>
+
+                    <div className="space-y-2">
+                      {[
+                        { label: 'Hands-on experiments and tinkering', state: 'active' },
+                        { label: 'Problem-solving and puzzles' },
+                        { label: 'Creative projects and stories' },
+                        { label: 'Reading and research' },
+                      ].map((opt) => (
+                        <div
+                          key={opt.label}
+                          className={`flex items-center justify-between px-4 py-3 rounded-xl border text-sm transition-colors ${
+                            opt.state === 'active'
+                              ? 'border-brand-300 bg-brand-50 text-ink'
+                              : 'border-line text-ink-2'
+                          }`}
+                        >
+                          <span className="font-medium">{opt.label}</span>
+                          {opt.state === 'active' && (
+                            <span className="w-4 h-4 rounded-full border border-brand-500 flex items-center justify-center">
+                              <Check className="w-2.5 h-2.5 text-white" />
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="mt-5 pt-4 border-t border-line flex items-center justify-between">
+                      <span className="text-xs text-ink-3">Personalized as you go</span>
+                      <span className="inline-flex items-center gap-1 text-sm font-semibold text-brand-700">
+                        Continue <ArrowRight className="w-4 h-4" />
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </FadeIn>
+            </FadeIn>
+          </div>
+        </div>
+      </section>
+
+      {/* ── The problem / journey ────────────────────────── */}
+      <section className="border-t border-line bg-paper">
+        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-20 lg:py-24">
+          <FadeIn className="max-w-2xl mb-12">
+            <p className="eyebrow text-ink-3 mb-3">The problem</p>
+            <h2 className="font-display font-medium text-3xl sm:text-4xl text-ink tracking-[-0.02em] text-balance">
+              The future is big. The advice you get shouldn&rsquo;t be vague.
+            </h2>
+            <p className="mt-4 text-ink-2 leading-relaxed">
+              Right now, most guidance is a loud opinion: &ldquo;Do engineering,&rdquo;
+              &ldquo;Commerce is safe,&rdquo; &ldquo;Go abroad.&rdquo; But the right answer
+              isn&rsquo;t a category — it&rsquo;s a fit. Here&rsquo;s how NAVORA moves
+              you forward, one honest step at a time.
+            </p>
+
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-px bg-line border border-line rounded-2xl overflow-hidden">
+              {journey.map((step, i) => (
+                <div key={step.title} className="bg-surface p-7">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="font-display italic text-3xl text-brand-300">{i + 1}</span>
+                    <JourneyIllustration variant={step.illustration} className="w-14 h-14 shrink-0" />
+                  </div>
+                  <h3 className="mt-4 font-ui font-semibold text-ink">{step.title}</h3>
+                  <p className="mt-2 text-sm text-ink-2 leading-relaxed">{step.copy}</p>
+                </div>
+              ))}
+            </div>
+          </FadeIn>
+        </div>
+      </section>
+
+      {/* ── Personas ─────────────────────────────────────── */}
+      <section className="border-t border-line bg-surface">
+        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-20 lg:py-24">
+          <FadeIn className="max-w-2xl mb-12">
+            <p className="eyebrow text-ink-3 mb-3">Who it&rsquo;s for</p>
+            <h2 className="font-display font-medium text-3xl sm:text-4xl text-ink tracking-[-0.02em] text-balance">
+              Your questions are different. So is your guidance.
+            </h2>
+          </FadeIn>
+
+          <StaggerContainer className="grid sm:grid-cols-2 gap-5">
+            {Object.values(personas).map((persona) => {
+              return (
+                <StaggerItem key={persona.id}>
+                  <Link to="/get-started" className="block group">
+                    <div className="bg-paper border border-line rounded-2xl p-7 h-full transition-all duration-300 group-hover:border-line-strong group-hover:shadow-lg group-hover:-translate-y-1">
+                      <div className="flex items-start justify-between">
+                        <span
+                          className="w-16 h-16 rounded-2xl flex items-center justify-center overflow-hidden"
+                          style={{ backgroundColor: persona.accentSoft }}
+                        >
+                          <PersonaIllustration persona={persona.id} className="w-16 h-16" />
+                        </span>
+                        <ArrowRight className="w-5 h-5 text-ink-3 group-hover:text-ink transition-colors" />
+                      </div>
+                      <p className="eyebrow mt-6" style={{ color: persona.accentColor }}>
+                        {persona.title}
+                      </p>
+                      <h3 className="mt-2 font-display font-medium text-2xl text-ink leading-snug text-balance">
+                        {persona.tone.heading}
+                      </h3>
+                      <p className="mt-3 text-sm text-ink-2 leading-relaxed">
+                        {persona.tone.intro}
+                      </p>
+                    </div>
+                  </Link>
+                </StaggerItem>
+              );
+            })}
+          </StaggerContainer>
+        </div>
+      </section>
+
+      {/* ── Why NAVORA ───────────────────────────────────── */}
+      <section className="border-t border-line bg-paper">
+        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-20 lg:py-24">
+          <div className="grid lg:grid-cols-12 gap-12 items-center">
+            <FadeIn className="lg:col-span-5">
+              <p className="eyebrow text-ink-3 mb-3">Why NAVORA</p>
+              <h2 className="font-display font-medium text-3xl sm:text-4xl text-ink tracking-[-0.02em] text-balance">
+                A guide that treats you like a person, not a demographic.
+              </h2>
+              <p className="mt-4 text-ink-2 leading-relaxed">
+                We don&rsquo;t have a &ldquo;best course&rdquo; to sell you. We have a
+                method — built on real decision-making — that helps you
+                see your own options clearly.
+              </p>
+              <Link to="/get-started" className="inline-block mt-6">
+                <Button variant="dark">
+                  Find my path
+                  <ArrowRight className="w-4 h-4" />
+                </Button>
+              </Link>
+            </FadeIn>
+
+            <StaggerContainer className="lg:col-span-7 space-y-4">
+              {reasons.map((reason) => {
+                const Icon = reason.icon;
+                return (
+                  <StaggerItem key={reason.title}>
+                    <div className="flex gap-5 bg-surface border border-line rounded-2xl p-6">
+                      <span className="w-11 h-11 rounded-xl bg-brand-50 text-brand-700 flex items-center justify-center shrink-0">
+                        <Icon className="w-5 h-5" strokeWidth={1.75} />
+                      </span>
+                      <div>
+                        <h3 className="font-ui font-semibold text-ink">{reason.title}</h3>
+                        <p className="mt-1.5 text-sm text-ink-2 leading-relaxed">{reason.copy}</p>
+                      </div>
+                    </div>
+                  </StaggerItem>
+                );
+              })}
+            </StaggerContainer>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Final CTA ────────────────────────────────────── */}
+      <section className="border-t border-line bg-brand-950 text-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-noise opacity-60" />
+        <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-brand-600/30 blur-3xl" />
+        <div className="absolute -bottom-32 -left-16 w-80 h-80 rounded-full bg-spark-500/20 blur-3xl" />
+        <div className="relative max-w-3xl mx-auto px-5 sm:px-8 py-24 text-center">
+          <FadeIn>
+            <BookOpen className="w-8 h-8 mx-auto mb-6 text-brand-200" strokeWidth={1.5} />
+            <h2 className="font-display font-medium text-4xl sm:text-5xl tracking-[-0.02em] text-balance">
+              You don&rsquo;t need another opinion. You need clarity.
+            </h2>
+            <p className="mt-5 text-brand-100/80 text-lg leading-relaxed max-w-xl mx-auto">
+              Answer a few honest questions and see your path laid out — compared,
+              explained, and free of guesswork.
+            </p>
+            <div className="mt-9 flex flex-col sm:flex-row items-center justify-center gap-3">
+              <Link to="/get-started">
+                <Button size="xl" className="bg-white text-brand-950 hover:bg-brand-50">
+                  Start your path
+                  <ArrowRight className="w-5 h-5" />
+                </Button>
+              </Link>
+              <Link to="/advisor">
+                <Button
+                  size="xl"
+                  className="!text-white !bg-transparent hover:!bg-white/10 !shadow-none border border-white/20"
+                >
+                  Talk to the advisor
+                </Button>
+              </Link>
+            </div>
+            <p className="mt-6 text-sm text-brand-200/70 flex items-center justify-center gap-2">
+              <Compass className="w-4 h-4" />
+              Free to start · No account needed · Private by design
+            </p>
+          </FadeIn>
+        </div>
+      </section>
+    </div>
+  );
+}

@@ -1,0 +1,47 @@
+{
+    "userType":  "class12",
+    "answers":  {
+                    "interest":  [
+                                     "biology",
+                                     "medicine"
+                                 ],
+                    "career_goal":  "doctor",
+                    "stream":  "bipc"
+                },
+    "summary":  {
+                    "streamLabel":  "BiPC - Biology, Physics, Chemistry",
+                    "selections":  [
+                                       {
+                                           "id":  "biology",
+                                           "label":  "Biology"
+                                       },
+                                       {
+                                           "id":  "medicine",
+                                           "label":  "Medicine"
+                                       }
+                                   ],
+                    "stageLabel":  "After Class 12"
+                },
+    "resolvedProfile":  {
+                            "current_stage":  "Class 12",
+                            "stream":  "BiPC - Biology, Physics, Chemistry",
+                            "interests":  [
+                                              "Medicine",
+                                              "Biology"
+                                          ],
+                            "strengths":  [
+                                              "Memorising and understanding biological processes"
+                                          ],
+                            "education_level":  "After Class 12",
+                            "career_interests":  [
+                                                     "MBBS / Doctor"
+                                                 ],
+                            "work_preferences":  [
+                                                     "Working with people, helping patients"
+                                                 ],
+                            "favorite_subjects":  [
+                                                      "Biology",
+                                                      "Chemistry"
+                                                  ]
+                        }
+}

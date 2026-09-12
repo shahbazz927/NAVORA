@@ -1,0 +1,25 @@
+  OK found: "What kind of guidance are you looking for?"
+  OK found: "I've completed Class 12"
+  OK found: "already pursuing graduation"
+  OK found: "guidance for my child"
+  OK absent: "Class 10"
+-- TEST A done
+  OK found: "What are you currently studying?"
+  OK found: "What degree are you pursuing?"
+  OK found: "B.Tech / B.E."
+  OK absent: "MBBS"
+  OK found: "Question 2 of 5"
+  OK found: "Software Development"
+  OK found: "Problem Solving"
+  OK absent: "Clinical Reasoning"
+  OK found: "Your Career Direction"
+-- TEST D/E done
+  OK found: "Where is your child in their education journey?"
+  OK found: "Class 10"
+  OK found: "naturally enjoy"
+  OK absent: "What are you currently studying?"
+-- TEST Q (parent class10) done
+  OK found: "child is already in graduation"
+  OK found: "MBBS"
+  OK absent: "which specialization"
+E2E failed: page.waitForFunction: Timeout 20000ms exceeded.

@@ -1,0 +1,182 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e6]:
+      - link "Novera home" [ref=e7] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e8]: Novera
+      - navigation [ref=e15]:
+        - link "Home" [ref=e16] [cursor=pointer]:
+          - /url: /
+        - link "Get started" [ref=e17] [cursor=pointer]:
+          - /url: /get-started
+        - link "Dashboard" [ref=e18] [cursor=pointer]:
+          - /url: /dashboard
+        - link "AI advisor" [ref=e19] [cursor=pointer]:
+          - /url: /advisor
+      - link [ref=e21] [cursor=pointer]:
+        - /url: /get-started
+        - button "Start your path" [ref=e22]
+  - main [ref=e23]:
+    - generic [ref=e25]:
+      - generic [ref=e28]:
+        - generic [ref=e29]:
+          - paragraph [ref=e30]: Guidance for learning, made human
+          - heading [level=1] [ref=e32]:
+            - text: Choosing your future shouldn’t feel
+            - emphasis [ref=e33]: like a gamble
+            - text: .
+          - paragraph [ref=e34]: Stream, course, college, career — every choice feels permanent, and everyone has an opinion. Novera helps you understand your real options, compare them honestly, and decide with confidence.
+          - generic [ref=e35]:
+            - link [ref=e36] [cursor=pointer]:
+              - /url: /get-started
+              - button "Start your path" [ref=e37]
+            - link [ref=e40] [cursor=pointer]:
+              - /url: /advisor
+              - button "Ask the AI advisor" [ref=e41]
+          - paragraph [ref=e42]: Free, private, and takes about two minutes
+        - generic [ref=e46]:
+          - generic:
+            - img "Students making education decisions"
+          - generic [ref=e48]:
+            - generic [ref=e49]: Novera · your assessment
+            - generic [ref=e55]:
+              - paragraph [ref=e56]: Question 2 of 5
+              - paragraph [ref=e57]: How do you prefer to learn new things?
+            - generic [ref=e58]:
+              - generic [ref=e59]: Hands-on experiments and tinkering
+              - generic [ref=e64]: Problem-solving and puzzles
+              - generic [ref=e66]: Creative projects and stories
+              - generic [ref=e68]: Reading and research
+            - generic [ref=e70]:
+              - generic [ref=e71]: Personalized as you go
+              - generic [ref=e72]: Continue
+      - generic [ref=e76]:
+        - generic [ref=e77]:
+          - paragraph [ref=e78]: The problem
+          - heading "The future is big. The advice you get shouldn’t be vague." [level=2] [ref=e79]
+          - paragraph [ref=e80]: "Right now, most guidance is a loud opinion: “Do engineering,” “Commerce is safe,” “Go abroad.” But the right answer isn’t a category — it’s a fit. Here’s how Novera moves you forward, one honest step at a time."
+        - generic [ref=e81]:
+          - generic [ref=e82]:
+            - generic [ref=e83]:
+              - generic [ref=e84]: "1"
+              - img "Confused student with many options" [ref=e85]
+            - heading "Confusion" [level=3] [ref=e109]
+            - paragraph [ref=e110]: Every decision — stream, course, college — feels permanent. Lakhs of students choose in the dark every year.
+          - generic [ref=e111]:
+            - generic [ref=e112]:
+              - generic [ref=e113]: "2"
+              - img "Student understanding" [ref=e114]
+            - heading "Understanding" [level=3] [ref=e133]
+            - paragraph [ref=e134]: One honest conversation about what you enjoy, how you learn, and what actually matters.
+          - generic [ref=e135]:
+            - generic [ref=e136]:
+              - generic [ref=e137]: "3"
+              - img "Student gaining clarity" [ref=e138]
+            - heading "Clarity" [level=3] [ref=e154]
+            - paragraph [ref=e155]: Your options, compared on the things that matter to you — not a generic list of courses.
+          - generic [ref=e156]:
+            - generic [ref=e157]:
+              - generic [ref=e158]: "4"
+              - img "Student confident" [ref=e159]
+            - heading "Confidence" [level=3] [ref=e173]
+            - paragraph [ref=e174]: You move forward knowing the choice is yours, and that it was made well.
+      - generic [ref=e176]:
+        - generic [ref=e177]:
+          - paragraph [ref=e178]: Who it’s for
+          - heading "Your questions are different. So is your guidance." [level=2] [ref=e179]
+        - generic [ref=e180]:
+          - link [ref=e182] [cursor=pointer]:
+            - /url: /get-started
+            - generic [ref=e183]:
+              - img "Class 10 student" [ref=e186]
+              - paragraph [ref=e232]: Class 10
+              - heading "The choices are everywhere. The clarity isn’t." [level=3] [ref=e233]
+              - paragraph [ref=e234]: You’re about to pick a stream — and it feels like it decides everything. It doesn’t. Let’s figure out what genuinely lights you up, then find the path that fits you. No jargon, no pressure.
+          - link [ref=e236] [cursor=pointer]:
+            - /url: /get-started
+            - generic [ref=e237]:
+              - img "Class 12 student" [ref=e240]
+              - paragraph [ref=e289]: Class 12
+              - heading "This decision matters. Let’s make it well." [level=3] [ref=e290]
+              - paragraph [ref=e291]: Colleges, courses, entrance exams, budgets — it’s a lot to weigh. We’ll compare your real options side by side, so the choice is yours — and informed.
+          - link [ref=e293] [cursor=pointer]:
+            - /url: /get-started
+            - generic [ref=e294]:
+              - img "Graduate" [ref=e297]
+              - paragraph [ref=e342]: Graduate
+              - heading "Where do you want your career to go next?" [level=3] [ref=e343]
+              - paragraph [ref=e344]: Whether it’s a promotion, a switch, or a brand-new direction — the right move depends on where you are now. Let’s map the practical next steps.
+          - link [ref=e346] [cursor=pointer]:
+            - /url: /get-started
+            - generic [ref=e347]:
+              - img "Parent discussing education with child" [ref=e350]
+              - paragraph [ref=e423]: Parent
+              - heading "You want the best for them. Let’s make it clear." [level=3] [ref=e424]
+              - paragraph [ref=e425]: Fees, rankings, safety, future-proof careers — you’re balancing a lot. We’ll lay out the options transparently, so you can guide your child with confidence, not guesswork.
+      - generic [ref=e428]:
+        - generic [ref=e429]:
+          - paragraph [ref=e430]: Why Novera
+          - heading "A guide that treats you like a person, not a demographic." [level=2] [ref=e431]
+          - paragraph [ref=e432]: We don’t have a “best course” to sell you. We have a method — built on real decision-making — that helps you see your own options clearly.
+          - link [ref=e433] [cursor=pointer]:
+            - /url: /get-started
+            - button "Find my path" [ref=e434]
+        - generic [ref=e437]:
+          - generic [ref=e444]:
+            - heading "Built around you" [level=3] [ref=e445]
+            - paragraph [ref=e446]: Your interests, strengths, learning style, and budget — not a one-size-fits-all list.
+          - generic [ref=e454]:
+            - heading "Compare honestly" [level=3] [ref=e455]
+            - paragraph [ref=e456]: Weights, trade-offs, and costs shown plainly. No exaggerated promises, no pressure.
+          - generic [ref=e462]:
+            - heading "Ask when you’re stuck" [level=3] [ref=e463]
+            - paragraph [ref=e464]: An AI advisor that answers follow-ups in plain language, whenever questions come up.
+      - generic [ref=e470]:
+        - heading "You don’t need another opinion. You need clarity." [level=2] [ref=e473]
+        - paragraph [ref=e474]: Answer a few honest questions and see your path laid out — compared, explained, and free of guesswork.
+        - generic [ref=e475]:
+          - link [ref=e476] [cursor=pointer]:
+            - /url: /get-started
+            - button "Start your path" [ref=e477]
+          - link [ref=e480] [cursor=pointer]:
+            - /url: /advisor
+            - button "Talk to the advisor" [ref=e481]
+        - paragraph [ref=e482]: Free to start · No account needed · Private by design
+  - contentinfo [ref=e486]:
+    - generic [ref=e487]:
+      - generic [ref=e488]:
+        - generic [ref=e489]:
+          - generic [ref=e490]: Novera
+          - paragraph [ref=e497]: Novera helps students and parents move from confusion to confidence — with clear, honest guidance on the decisions that shape their future.
+          - generic [ref=e498]: Honest guidance. No guarantees. No hype.
+        - generic [ref=e503]:
+          - heading "Explore" [level=4] [ref=e504]
+          - list [ref=e505]:
+            - listitem [ref=e506]:
+              - link "Get started" [ref=e507] [cursor=pointer]:
+                - /url: /get-started
+            - listitem [ref=e508]:
+              - link "Dashboard" [ref=e509] [cursor=pointer]:
+                - /url: /dashboard
+            - listitem [ref=e510]:
+              - link "AI advisor" [ref=e511] [cursor=pointer]:
+                - /url: /advisor
+        - generic [ref=e512]:
+          - heading "Guidance" [level=4] [ref=e513]
+          - list [ref=e514]:
+            - listitem [ref=e515]:
+              - link "Stream selection" [ref=e516] [cursor=pointer]:
+                - /url: /get-started
+            - listitem [ref=e517]:
+              - link "Courses & colleges" [ref=e518] [cursor=pointer]:
+                - /url: /get-started
+            - listitem [ref=e519]:
+              - link "Career moves" [ref=e520] [cursor=pointer]:
+                - /url: /get-started
+        - generic [ref=e521]:
+          - heading "Not sure where to begin?" [level=4] [ref=e522]
+          - link "Take the 2-minute assessment" [ref=e523] [cursor=pointer]:
+            - /url: /get-started
+      - generic [ref=e527]:
+        - paragraph [ref=e528]: © 2026 Novera. All rights reserved.
+        - paragraph [ref=e529]: Guidance for learning, made human.

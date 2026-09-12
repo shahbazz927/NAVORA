@@ -1,0 +1,50 @@
+{
+    "userType":  "class12",
+    "answers":  {
+                    "interest":  [
+                                     "accounting",
+                                     "business"
+                                 ],
+                    "career_goal":  "business",
+                    "stream":  "commerce"
+                },
+    "summary":  {
+                    "streamLabel":  "Commerce",
+                    "selections":  [
+                                       {
+                                           "id":  "accounting",
+                                           "label":  "Accounting"
+                                       },
+                                       {
+                                           "id":  "business",
+                                           "label":  "Business"
+                                       }
+                                   ],
+                    "stageLabel":  "After Class 12"
+                },
+    "resolvedProfile":  {
+                            "current_stage":  "Class 12",
+                            "stream":  "Commerce",
+                            "interests":  [
+                                              "Accounting",
+                                              "Business",
+                                              "Finance"
+                                          ],
+                            "strengths":  [
+                                              "Working with numbers",
+                                              "Organised and detail-oriented"
+                                          ],
+                            "education_level":  "After Class 12",
+                            "career_interests":  [
+                                                     "Chartered Accountancy"
+                                                 ],
+                            "work_preferences":  [
+                                                     "Structured, professional work"
+                                                 ],
+                            "favorite_subjects":  [
+                                                      "Accountancy",
+                                                      "Business Studies",
+                                                      "Economics"
+                                                  ]
+                        }
+}

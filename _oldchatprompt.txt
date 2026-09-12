@@ -1,0 +1,396 @@
+// ============================================================================
+// NAVORA AI Career Advisor  OpenRouter backend
+// ----------------------------------------------------------------------------
+// A tiny, dependency-free Node HTTP server (Node >= 18) that:
+//    POST /api/career-advice    structured AI career advice from the student's
+//                                 completed questionnaire answers
+//    POST /api/advisor/chat     free-form advisor chat (plain-text replies)
+//    GET  /api/health, /health  liveness probe
+//
+// The browser NEVER talks to the AI provider directly. It only ever calls this
+// server, the only process that reads OPENROUTER_*and holds the API key.
+//
+// Env vars (loaded from .env at the project root):
+//   OPENROUTER_API_KEY  (required  your OpenRouter API key)
+//   OPENROUTER_BASE_URL (default https://openrouter.ai/api/v1)
+//   OPENROUTER_MODEL    (default openrouter/free)
+//   OPENROUTER_TIMEOUT_MS(default 120000)
+//   PORT                (default 3001)
+// ============================================================================
+
+
+import http from 'node:http';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
+
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
+
+//  Best-effort local .env loading (so OPENROUTER_* are read even when the
+// server is started without --env-file). Runs before config defaults resolve.
+
+try {
+  const envPath = join(ROOT, '.env');
+  const raw = readFileSync(envPath, 'utf8');
+  for (const line of raw.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+    const eq = trimmed.indexOf('=');
+    if (eq === -1) continue;
+    const key = trimmed.slice(0, eq).trim();
+    let value = trimmed.slice(eq + 1).trim();
+    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+      value = value.slice(1, -1);
+    }
+    if (process.env[key] === undefined) process.env[key] = value;
+  }
+} catch {
+  // No .env present  rely on process.env / defaults.
+
+
+}
+
+//  Configuration -----------------------------------------------------------
+const OPENROUTER_API_KEY = (process.env.OPENROUTER_API_KEY || '').trim();
+const OPENROUTER_BASE_URL = (process.env.OPENROUTER_BASE_URL || 'https://openrouter.ai/api/v1').replace(/\/+$/, '');
+const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || 'openrouter/free';
+const OPENROUTER_TIMEOUT_MS = Number(process.env.OPENROUTER_TIMEOUT_MS) || 120000;
+const PORT = Number(process.env.PORT) || 3001;
+const MAX_BODY_BYTES = 1024 * 512; // 512 KB
+
+function missingApiKey() {
+  return !OPENROUTER_API_KEY;
+}
+
+//  System prompt (structured AI career advisor) -----------------------------
+const ADVICE_SYSTEM_PROMPT = `You are NAVORA's senior Indian education and career counsellor. You guide students like a warm, experienced Indian teacher. A student (or a parent answering for their child) has completed a career questionnaire,and their answers are provided below.
+
+Follow this reasoning chain internally: student answers, then student profile, then interests, strengths, academic background, preferences, suitable career areas, recommended career paths, why each path fits, education/study route, and finally practical next steps.
+
+
+PERSONALITY AND TONE:
+- Write as an approachable, professional Indian counsellor speaking directly to the student,in everyday plain language fit for a student in India..
+- Natural, warm, clear, practical, encouraging and honest..
+- Avoid anything robotic, corporate, or generic. Never start with phrases like "As an AI", "Based on your prompt", or "According to my analysis"..
+- No emojis, no generic motivational filler,and never repeat the same point twice..
+
+
+REASONING RULES:
+
+- Ground EVERY recommendation in the student's actual answers. Never recommend a career that has no connection to something they said..
+
+- Respect the student's own direction: if they lean commerce, do not push engineering; if they lean medicine, do not push software. Keep career recommendations within the family implied by their stream, subjects,and interests(medical/healthcare, technology, commerce/business, arts/humanities, engineering, design/creative, agriculture/environment) unless their answers give clear evidence for a shift..
+- If the student is undecided: do not force a single career. Name the strongest directions, explain why each is worth exploring,and suggest how to compare them practically..
+- If answers conflict(e.g. they dislike mathematics but ask for a math-heavy path): name the trade-off kindly,and help them test it before committing. Do not ignore the contradiction,and do not reject their goal outright..
+- If information is insufficient: say so plainly,and only suggest directions the limited answers still support. Never invent interests, marks, subjects, colleges,or any facts about the student..
+- Rank recommended careersbystrength of evidence, strongest to weakest,up to 5 paths..
+
+
+FACTUALACCURACY:
+- Neverfabricatecolleges,entranceexams,eligibilityrules,coursedurations,salaries,jobstatisticsorpolicies.Mentionexamsoreligibilityonlywhenclearlyappropriateforthestudent'seducationlevelandchosenpath(e.g.JEEforMPCengineering,NEETforBiPCmedicine,CLATforlaw,CA/CS/CMAforcommerceoraccounting,CUETwhererelevant).Giveapproximate,categorylevelroutes-neverinventedspecifics.Ifunsureaboutafact,omititratherthanguess..
+
+
+OUTPUT FORMAT:
+Reply with STRICT JSON only (no markdown fences, and no text before or after) matching exactly this schema:
+
+{
+  "profile_summary": "2-3 natural sentences capturing the student's academic background, interests,and strengths in your own words.",
+  "key_observations": ["3-5 short observations, each tied to a specific answer the student gave"],
+  "recommended_careers": [
+    {
+      "rank": 1,
+      "career": "Name of the career path",
+      "why_it_fits": "2-4 sentences explaining the concrete link between the student's answers and this career",
+      "study_route": "The relevant degree/course/entrance path in India",
+      "skills": ["3 concrete skills to build"],
+      "exams": ["Relevant Indian entrance exams, or an empty array if none clearly apply"],
+      "next_step": "One practical short-term action they can take now"
+    }
+  ],
+  "strongest_recommendation": {
+    "career": "Your single strongest pick, only when the evidence is strong enough; otherwise leave empty",
+    "reason": "Why it currently appears the strongest fit, phrased humbly"
+  },
+  "alternatives": [
+    { "career": "Alternative path", "note": "What makes it different and when it could fit the student better" }
+  ],
+  "action_plan": ["3-5 practical next actions: strengthen subjects, learn skills, investigate exams, try a small project, or talk to people working in the field"],
+  "reflection_question": "One thoughtful question or consideration to help the student decide"
+}
+
+TARGET LENGTH: A complete thorough answer of roughly 600-1000 words embedded in that JSON when enough information exists(so the profile_summary and each why_it_fits can read naturally). If the student gave only a few answers, keep it shorter  quality is more important than word count. Decide on the strongest direction(s)and choose up to 5 recommended careers, ranked from strongest to weakest.`;
+
+function buildUserPrompt(body) {
+  const lines = [];
+  if (body?.userType) lines.push(`Student type: ${body.userType}`);
+
+  // Structured, human-readable profile  the authoritative view for reasoning.
+
+  const profile = body?.resolvedProfile && typeof body.resolvedProfile === 'object' ? body.resolvedProfile : {};
+  const profileEntries = Object.entries(profile).filter(([, v]) => {
+    if (Array.isArray(v)) return v.filter(Boolean).length >  0;
+    return Boolean(v);
+  });
+  if (profileEntries.length) {
+    lines.push('');
+    lines.push('STRUCTURED STUDENT PROFILE:');
+    for (const [key, value] of profileEntries) {
+      const label = PROFILE_LABELS[key] || key;
+      const val = Array.isArray(value)
+        ? value.filter(Boolean).map((x) => String(x.trim())).join('; ')
+        : (value && typeof value === 'object' ? JSON.stringify(value) : String(value == null ? '' : value .trim()));
+      if (val) lines.push(`- ${label}: ${val}`);
+    }
+  }
+
+  const summary = body?.summary || {};
+  const selections = Array.isArray(summary.selections)
+    ? summary.selections.map((s) => s?.label || s?.id || s?.value || (typeof s === 'string' ? s : null)).filter(Boolean)
+    : [];
+  if (selections.length) {
+    lines.push('');
+    lines.push('Selected subjects/interests (as readable labels):');
+    selections.forEach((s) => lines.push(`- ${s}`));
+  }
+
+  const answers = body?.answers && typeof body.answers === 'object' && !Array.isArray(body .answers) ? body.answers : {};
+  const rawEntries = Object.entries(answers).map(([k, v]) => [k, fmtAnswerValue(v)]).filter(([, v]) => Boolean(String(v .trim())));
+  if (rawEntries.length) {
+    lines.push('');
+    lines.push('Additional questionnaire answers (field: value):');
+    for (const [k, v] of rawEntries) lines.push(`- ${k}: ${v}`);
+  }
+
+  lines.push('');
+  lines.push('Produce the career direction JSON now, grounding every recommendationin the profile and answers actually given.');
+  return lines.join('\n');
+}
+
+const PROFILE_LABELS = {
+  education_level: 'Education level',
+  current_stage: 'Current stage',
+  stream: 'Stream / field',
+  degree: 'Degree',
+  specialization: 'Specialisation',
+  favorite_subjects: 'Favourite subjects',
+  interests: 'Interests',
+  strengths: 'Strengths',
+  skills: 'Skills',
+  career_interests: 'Career interests',
+  work_preferences: 'Work / study preferences',
+  preferred_environment: 'Preferred environment',
+  goals: 'Goals',
+  concerns: 'Concerns',
+  location: 'Location preference',
+  other_information: 'Other information',
+};
+
+function fmtAnswerValue(v) {
+  if (Array.isArray(v)) {
+    const parts = v.map(fmtAnswerValue).filter(Boolean);
+    return parts.length ? parts.join(', ') : '';
+  }
+  if (v && typeof v === 'object') {
+    const s = JSON.stringify(v);
+    return (s === '{}' || s === '[]') ? '' : s.replace(/"/g, "'");
+  }
+  return String(v == null ? '' : v.trim());
+}
+
+//  Helpers ------------------------------------------------------------------
+function sendJson(res, status, payload) {
+  const body = JSON.stringify(payload);
+  res.writeHead(status, {
+    'Content-Type': 'application/json; charset=utf-8',
+    'Content-Length': Buffer.byteLength(body),
+    'Cache-Control': 'no-store',
+  });
+  res.end(body);
+}
+
+function readBody(req) {
+  return new Promise((resolve, reject) => {
+    let size = 0;
+    const chunks = [];
+    req.on('data', (chunk) => {
+      size += chunk.length;
+      if (size > MAX_BODY_BYTES) {
+        reject(new Error('PAYLOAD_TOO_LARGE'));
+        req.destroy();
+        return;
+      }
+      chunks.push(chunk);
+    });
+    req.on('end', () => {
+      try {
+        resolve(chunks.length ? JSON.parse(Buffer.concat(chunks).toString('utf8')) : {});
+      } catch {
+        reject(Object.assign(new Error('Invalid JSON body'), { code: 'INVALID_JSON' }));
+      }
+    });
+    req.on('error', reject);
+  });
+}
+
+/**
+ * Calls OpenRouter's OpenAI-compatible Chat Completions endpoint with an
+ * AbortController timeout. Resolves with { content, model }. Rejects with a
+ * typed Error whose `.code` maps to a client-facing status:
+ *   HTTP_<status>   provider returned non-2xx (401, 429, etc.)
+ *   other             provider unreachable / timeout / empty reply
+ */
+async function callOpenRouter({ messages }) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(new Error('OPENROUTER_TIMEOUT')), OPENROUTER_TIMEOUT_MS);
+  try {
+    const res = await fetch(`${OPENROUTER_BASE_URL}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${OPENROUTER_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: OPENROUTER_MODEL,
+        messages,
+        temperature: 0.3,
+      }),
+      signal: controller.signal,
+    });
+
+    if (!res.ok) {
+      let detail = '';
+      try {
+        detail = await res.text();
+      } catch {
+        /* ignore */
+      }
+      const err = new Error(`OpenRouter responded with HTTP ${res.status}`);
+      err.code = `HTTP_${res.status}`;
+      err.status = res.status;
+      err.detail = detail;
+      throw err;
+    }
+
+    const data = await res.json();
+    const content = String(data?.choices?.[0]?.message?.content || '').trim();
+    if (!content) {
+      throw Object.assign(new Error('Empty response from OpenRouter'), { code: 'EMPTY_RESPONSE' });
+    }
+    return { content, model: data?.model || OPENROUTER_MODEL };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/**
+ * Robustly extract a JSON object from a model reply string (strips markdown
+ * fences and any surrounding prose, then parses the first {...} block).
+ */
+function parseModelJson(raw) {
+  let text = (typeof raw === 'string' ? raw : (raw && typeof raw === 'object' ? JSON.stringify(raw) : String(raw || ''))).trim();
+  text = text.replace(/^\s*```(?:json)?\s*|\s*```\s*$/gi, '');
+  const start = text.indexOf('{');
+  const end = text.lastIndexOf('}');
+  if (start !== -1 && end !== -1 && end > start) text = text.slice(start,end + 1);
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw Object.assign(new Error('AI response was not valid JSON'), { code: 'INVALID_AI_RESPONSE' });
+  }
+}
+
+/**
+ * Wrap raw model content into the structured advice contract.
+ * Produces the rich NAVORA schema ANDthe backwards-compatible shape
+ * (recommendedCareers / alternativeCareers) the existing frontend renders.
+
+ */
+function normalizeAdvice(raw) {
+  const parsed = parseModelJson(raw);
+  const str = (v, fallback = '') => {
+    if (typeof v === 'string') return v.trim();
+    if (v && typeof v === 'object' && typeof v.label === 'string') return v.label.trim();
+    if (typeof v === 'number' || typeof v === 'boolean') return String(v);
+    return v != null ? String(v .trim()) : fallback;
+  };
+  const strArray = (v, max) => {
+    const limit = typeof max === 'number' ? max : 6;
+    if (Array.isArray(v)) return v.map(str).filter(Boolean).slice(0, limit);
+    if (typeof v === 'string' && v.trim()) return [str(v)];
+    if (v && typeof v === 'object' && typeof v.label === 'string') return [str(v)];
+    return [];
+  };
+
+  const profileSummary = str(parsed.profile_summary || parsed.profileSummary) || null;
+  const keyObservations = strArray(parsed.key_observations || parsed.keyObservations, 6);
+   const reflectionQuestion = str(parsed.reflection_question || parsed.reflectionQuestion) || null;
+   const actionPlan = strArray(parsed.action_plan || parsed.actionPlan, 8);
+
+  const careers = (parsed.recommended_careers || parsed.recommendedCareers) || [];
+   const alternativesRaw = (parsed.alternatives || parsed.alternativeCareers) || [];
+
+ // Backwards-compatible shape the UI already renders.
+ const recommendedCareers = careers
+    .filter((c) => c && typeof c === 'object' && str(c.career || c.title))
+    .map((c) => {
+      const next = c.next_step || (Array.isArray(c.nextSteps) ? c.nextSteps[0] : null);
+      return {
+        title: str(c.career || c.title),
+        whySuit: str(c.why_it_fits || c.whySuit || str(c.reason)),
+        degree: str(c.study_route || c.degree),
+        skills: strArray(c.skills),
+        exams: strArray(c.exams, 8),
+        nextSteps: next ? [str(next)] : [],
+      };
+    });
+
+  if (recommendedCareers.length === 0) {
+    throw Object.assign(new Error('AI response contained no careers'), { code: 'INVALID_AI_RESPONSE' });
+  }
+
+  const alternativeCareers = alternativesRaw
+    .filter((a) => a && typeof a === 'object' && str(a.career || a.title))
+    .map((a) => ({ title: str(a.career || a.title), note: str(a.note || str(a.why_it_fits)) }));
+
+  const strongestRaw = parsed.strongest_recommendation || parsed.strongestRecommendation || {};
+   const strongestName = str(strongestRaw.career || strongestRaw.title);
+   const strongestRecommendation = strongestName
+    ? { career: strongestName, reason: str(strongestRaw.reason || strongestRaw.why) }
+    : null;
+
+  return {
+    recommendedCareers,             // backwards-compatible
+    alternativeCareers,            // backwards-compatible
+    profileSummary: profileSummary || null,
+    keyObservations: keyObservations || null,
+    strongestRecommendation: strongestRecommendation || null,
+    actionPlan: actionPlan.length ? actionPlan : null,
+    reflectionQuestion: reflectionQuestion || null,
+  };
+}
+
+//  Input validation for career advice ---------------------------------------
+function validateAdviceRequest(body) {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) {
+    throw Object.assign(new Error('Request body must be a JSON object'), { code: 'INVALID_ANSWERS' });
+  }
+
+  const hasAnswers =
+    body.answers && typeof body.answers === 'object' && !Array.isArray(body.answers)
+      ? Object.keys(body.answers).length > 0
+      : false;
+
+  const summary = body.summary && typeof body.summary === 'object' ? body.summary : {};
+  const hasContext =
+    Boolean(summary.stageLabel) ||
+    Boolean(summary.streamLabel) ||
+    (Array.isArray(summary.selections) && summary.selections.length > 0);
+
+  if (!hasAnswers && !hasContext) {
+    throw Object.assign(
+      new Error('No completed questionnaire answers were provided'),
+      { code: 'INVALID_ANSWERS' },
+    );
+  }
+}
+//  Chat system prompt (free-form advisor) -----------------------------------

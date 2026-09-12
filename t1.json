@@ -1,0 +1,72 @@
+{
+    "userType":  "class12",
+    "answers":  {
+                    "work_style":  "team",
+                    "stream":  "mpc",
+                    "learning_style":  "analytical",
+                    "career_goal":  "engineer",
+                    "strengths":  [
+                                      "math",
+                                      "problem_solving"
+                                  ],
+                    "interest":  [
+                                     "mathematics",
+                                     "computer_science",
+                                     "technology"
+                                 ]
+                },
+    "summary":  {
+                    "streamLabel":  "MPC - Physics, Chemistry, Mathematics",
+                    "selections":  [
+                                       {
+                                           "id":  "mathematics",
+                                           "label":  "Mathematics"
+                                       },
+                                       {
+                                           "id":  "computer_science",
+                                           "label":  "Computer Science"
+                                       },
+                                       {
+                                           "id":  "technology",
+                                           "label":  "Technology"
+                                       }
+                                   ],
+                    "stageLabel":  "After Class 12"
+                },
+    "resolvedProfile":  {
+                            "interests":  [
+                                              "Computer Science",
+                                              "Technology",
+                                              "Mathematics"
+                                          ],
+                            "current_stage":  "Class 12",
+                            "stream":  "MPC - Physics, Chemistry, Mathematics",
+                            "degree":  null,
+                            "concerns":  null,
+                            "specialization":  null,
+                            "location":  null,
+                            "strengths":  [
+                                              "Problem-solving and logic",
+                                              "Mathematical ability"
+                                          ],
+                            "skills":  [
+
+                                       ],
+                            "preferred_environment":  null,
+                            "goals":  null,
+                            "education_level":  "After Class 12",
+                            "career_interests":  [
+                                                     "Software Engineering",
+                                                     "Technology"
+                                                 ],
+                            "work_preferences":  [
+                                                     "Analytical problem-solving"
+                                                 ],
+                            "other_information":  null,
+                            "favorite_subjects":  [
+                                                      "Mathematics",
+                                                      "Physics",
+                                                      "Computer Science"
+                                                  ]
+                        }
+}

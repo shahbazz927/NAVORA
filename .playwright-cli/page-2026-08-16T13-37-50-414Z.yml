@@ -1,0 +1,164 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e6]:
+      - link "Novera home" [ref=e7] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e8]: Novera
+      - navigation [ref=e15]:
+        - link "Home" [ref=e16] [cursor=pointer]:
+          - /url: /
+        - link "Get started" [ref=e17] [cursor=pointer]:
+          - /url: /get-started
+        - link "Dashboard" [ref=e18] [cursor=pointer]:
+          - /url: /dashboard
+        - link "AI advisor" [ref=e19] [cursor=pointer]:
+          - /url: /advisor
+      - link [ref=e21] [cursor=pointer]:
+        - /url: /get-started
+        - button "Start your path" [ref=e22]
+  - main [ref=e23]:
+    - generic [ref=e1075]:
+      - generic [ref=e1076]:
+        - button "Back" [ref=e1077] [cursor=pointer]
+        - link [ref=e1289] [cursor=pointer]:
+          - /url: /compare
+          - button "Compare (2)" [ref=e1290]
+      - generic [ref=e1081]:
+        - generic [ref=e1082]:
+          - paragraph [ref=e1083]: Your results
+          - heading "Aarav, here’s the path that fits." [level=1] [ref=e1084]
+          - paragraph [ref=e1085]: Courses and colleges matched to your stream and priorities. Every option below is explained — including why it fits and what you’d be trading.
+        - img "Educational stream illustration" [ref=e1087]:
+          - generic [ref=e1123]: \u03B2
+      - generic [ref=e1148]:
+        - paragraph [ref=e1151]: Recommended for you
+        - heading "Medicine & Healthcare" [level=2] [ref=e1152]
+        - paragraph [ref=e1153]: MBBS and the clinical route — the most established, respected career in the health sciences.
+        - paragraph [ref=e1154]: Your PCB background is the direct entry into clinical medicine.
+      - generic [ref=e1157]:
+        - generic [ref=e1158]:
+          - heading "Why this fits you" [level=3] [ref=e1159]
+          - paragraph [ref=e1160]: Based on your answers, not a generic category.
+        - generic [ref=e1161]:
+          - generic [ref=e1167]:
+            - heading "Your stream" [level=4] [ref=e1168]
+            - paragraph [ref=e1169]: PCB is the exact feeder for MBBS and clinical medicine.
+          - generic [ref=e1175]:
+            - heading "Your interest" [level=4] [ref=e1176]
+            - paragraph [ref=e1177]: You chose Medicine & Healthcare — the flagship clinical path.
+          - generic [ref=e1183]:
+            - heading "Your priorities" [level=4] [ref=e1184]
+            - paragraph [ref=e1185]: Stability, respect, and impact are all at the core of medicine.
+      - generic [ref=e1186]:
+        - heading "Courses worth researching" [level=3] [ref=e1190]
+        - generic [ref=e1191]:
+          - generic [ref=e1194]:
+            - generic [ref=e1195]:
+              - generic [ref=e1196]:
+                - generic [ref=e1197]: "01"
+                - heading "MBBS" [level=4] [ref=e1198]
+              - paragraph [ref=e1199]: The flagship clinical route.
+            - generic [ref=e1200]:
+              - generic [ref=e1201]:
+                - paragraph [ref=e1202]: Fit
+                - paragraph [ref=e1203]: 96%
+              - generic [ref=e1204]:
+                - paragraph [ref=e1205]: Growth
+                - paragraph [ref=e1206]: 14%
+              - generic [ref=e1207]:
+                - paragraph [ref=e1208]: Salary
+                - paragraph [ref=e1209]: ₹10-25 LPA
+              - button "Add MBBS to compare" [ref=e1210] [cursor=pointer]
+          - generic [ref=e1214]:
+            - generic [ref=e1215]:
+              - generic [ref=e1216]:
+                - generic [ref=e1217]: "02"
+                - heading "BDS (Dentistry)" [level=4] [ref=e1218]
+              - paragraph [ref=e1219]: Respected clinical path with flexibility.
+            - generic [ref=e1220]:
+              - generic [ref=e1221]:
+                - paragraph [ref=e1222]: Fit
+                - paragraph [ref=e1223]: 90%
+              - generic [ref=e1224]:
+                - paragraph [ref=e1225]: Growth
+                - paragraph [ref=e1226]: 12%
+              - generic [ref=e1227]:
+                - paragraph [ref=e1228]: Salary
+                - paragraph [ref=e1229]: ₹5-12 LPA
+              - button "Add BDS (Dentistry) to compare" [active] [ref=e1230] [cursor=pointer]
+          - generic [ref=e1234]:
+            - generic [ref=e1235]:
+              - generic [ref=e1236]:
+                - generic [ref=e1237]: "03"
+                - heading "BAMS / BHMS" [level=4] [ref=e1238]
+              - paragraph [ref=e1239]: Traditional medicine with growing acceptance.
+            - generic [ref=e1240]:
+              - generic [ref=e1241]:
+                - paragraph [ref=e1242]: Fit
+                - paragraph [ref=e1243]: 84%
+              - generic [ref=e1244]:
+                - paragraph [ref=e1245]: Growth
+                - paragraph [ref=e1246]: 10%
+              - generic [ref=e1247]:
+                - paragraph [ref=e1248]: Salary
+                - paragraph [ref=e1249]: ₹4-10 LPA
+              - button "Add BAMS / BHMS to compare" [ref=e1250] [cursor=pointer]
+        - link "Open comparison" [ref=e1253] [cursor=pointer]:
+          - /url: /compare
+      - generic [ref=e1256]:
+        - heading "Advice worth keeping" [level=3] [ref=e1258]
+        - list [ref=e1260]:
+          - listitem [ref=e1262]:
+            - generic [ref=e1263]: "1"
+            - generic [ref=e1264]: Physics and chemistry for NEET need as much attention as biology.
+          - listitem [ref=e1266]:
+            - generic [ref=e1267]: "2"
+            - generic [ref=e1268]: Mock tests and previous-year papers are the real teacher.
+          - listitem [ref=e1270]:
+            - generic [ref=e1271]: "3"
+            - generic [ref=e1272]: Clinical experience and communication skills set great doctors apart.
+      - generic [ref=e1273]:
+        - link [ref=e1274] [cursor=pointer]:
+          - /url: /dashboard
+          - button "Save to dashboard" [ref=e1275]
+        - link [ref=e1278] [cursor=pointer]:
+          - /url: /advisor
+          - button "Ask a follow-up" [ref=e1279]
+  - contentinfo [ref=e486]:
+    - generic [ref=e487]:
+      - generic [ref=e488]:
+        - generic [ref=e489]:
+          - generic [ref=e490]: Novera
+          - paragraph [ref=e497]: Novera helps students and parents move from confusion to confidence — with clear, honest guidance on the decisions that shape their future.
+          - generic [ref=e498]: Honest guidance. No guarantees. No hype.
+        - generic [ref=e503]:
+          - heading "Explore" [level=4] [ref=e504]
+          - list [ref=e505]:
+            - listitem [ref=e506]:
+              - link "Get started" [ref=e507] [cursor=pointer]:
+                - /url: /get-started
+            - listitem [ref=e508]:
+              - link "Dashboard" [ref=e509] [cursor=pointer]:
+                - /url: /dashboard
+            - listitem [ref=e510]:
+              - link "AI advisor" [ref=e511] [cursor=pointer]:
+                - /url: /advisor
+        - generic [ref=e512]:
+          - heading "Guidance" [level=4] [ref=e513]
+          - list [ref=e514]:
+            - listitem [ref=e515]:
+              - link "Stream selection" [ref=e516] [cursor=pointer]:
+                - /url: /get-started
+            - listitem [ref=e517]:
+              - link "Courses & colleges" [ref=e518] [cursor=pointer]:
+                - /url: /get-started
+            - listitem [ref=e519]:
+              - link "Career moves" [ref=e520] [cursor=pointer]:
+                - /url: /get-started
+        - generic [ref=e521]:
+          - heading "Not sure where to begin?" [level=4] [ref=e522]
+          - link "Take the 2-minute assessment" [ref=e523] [cursor=pointer]:
+            - /url: /get-started
+      - generic [ref=e527]:
+        - paragraph [ref=e528]: © 2026 Novera. All rights reserved.
+        - paragraph [ref=e529]: Guidance for learning, made human.

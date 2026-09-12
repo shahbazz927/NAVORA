@@ -1,0 +1,328 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e6]:
+      - link "NAVORA home" [ref=e7] [cursor=pointer]:
+        - /url: /
+        - generic "NAVORA — Navigate your future" [ref=e8]:
+          - img "NAVORA" [ref=e9]
+      - navigation "Primary" [ref=e10]:
+        - link "Home" [ref=e11] [cursor=pointer]:
+          - /url: /
+        - link "Get Started" [ref=e12] [cursor=pointer]:
+          - /url: /get-started
+        - link "Dashboard" [ref=e13] [cursor=pointer]:
+          - /url: /dashboard
+        - link "AI Advisor" [ref=e14] [cursor=pointer]:
+          - /url: /advisor
+        - link "For Parents" [ref=e15] [cursor=pointer]:
+          - /url: /parents
+      - link "Start Your Path" [ref=e17] [cursor=pointer]:
+        - /url: /get-started
+  - main [ref=e21]:
+    - generic [ref=e23]:
+      - generic [ref=e26]:
+        - generic [ref=e27]:
+          - generic [ref=e28]:
+            - generic "NAVORA — Navigate your future" [ref=e29]:
+              - img "NAVORA" [ref=e30]
+            - generic [ref=e31]: AI-Powered Education Guidance
+          - heading [level=1] [ref=e32]:
+            - text: Choosing your future shouldn’t feel like a
+            - emphasis [ref=e33]: gamble
+            - text: .
+          - paragraph [ref=e34]: Stream, course, college, career — every choice feels permanent, and everyone has an opinion. NAVORA helps you understand your real options, compare them honestly, and decide with confidence.
+          - generic [ref=e35]:
+            - link [ref=e36] [cursor=pointer]:
+              - /url: /get-started
+              - button "Start Your Path" [ref=e37]
+            - link [ref=e41] [cursor=pointer]:
+              - /url: /advisor
+              - button "Ask the AI Advisor" [ref=e42]
+          - generic [ref=e46]:
+            - generic [ref=e47]: Free
+            - generic [ref=e51]: Private
+            - generic [ref=e55]: Takes about two minutes
+        - generic [ref=e60]:
+          - generic [ref=e62]:
+            - generic [ref=e63]:
+              - generic [ref=e64]:
+                - generic "NAVORA — Navigate your future" [ref=e65]:
+                  - img "NAVORA" [ref=e66]
+                - generic [ref=e67]: YOUR ASSESSMENT
+              - generic [ref=e68]: 2-minute
+            - generic [ref=e71]:
+              - generic [ref=e72]:
+                - generic [ref=e73]: QUESTION 2 OF 5
+                - generic [ref=e74]: 70%
+              - heading "How do you prefer to learn new things?" [level=3] [ref=e77]
+              - generic [ref=e78]:
+                - generic [ref=e79]: Hands-on experiments and tinkering
+                - generic [ref=e84]: Problem-solving and puzzles
+                - generic [ref=e87]: Creative projects and stories
+                - generic [ref=e90]: Reading and research
+              - generic [ref=e93]:
+                - generic [ref=e94]: Personalized as you go
+                - generic [ref=e95]: Continue
+          - generic [ref=e103]:
+            - paragraph [ref=e104]: Matches as you go
+            - paragraph [ref=e105]: No guesswork, just clarity
+      - generic [ref=e107]:
+        - generic [ref=e108]:
+          - paragraph [ref=e109]: Built for the education ecosystem
+          - heading "One platform for every stage of the journey." [level=2] [ref=e110]
+        - generic [ref=e111]:
+          - generic [ref=e120]:
+            - paragraph [ref=e121]: CBSE
+            - paragraph [ref=e122]: Schools & boards
+          - generic [ref=e131]:
+            - paragraph [ref=e132]: ICSE
+            - paragraph [ref=e133]: Schools & boards
+          - generic [ref=e139]:
+            - paragraph [ref=e140]: State Boards
+            - paragraph [ref=e141]: Regional streams
+          - generic [ref=e149]:
+            - paragraph [ref=e150]: Colleges
+            - paragraph [ref=e151]: Courses & campuses
+          - generic [ref=e159]:
+            - paragraph [ref=e160]: Universities
+            - paragraph [ref=e161]: Degrees & research
+          - generic [ref=e168]:
+            - paragraph [ref=e169]: Educators
+            - paragraph [ref=e170]: Teachers & mentors
+          - generic [ref=e179]:
+            - paragraph [ref=e180]: Students
+            - paragraph [ref=e181]: After 10th & 12th
+          - generic [ref=e190]:
+            - paragraph [ref=e191]: Parents
+            - paragraph [ref=e192]: Decision partners
+      - generic [ref=e198]:
+        - generic [ref=e199]:
+          - paragraph [ref=e200]: Your method
+          - generic [ref=e201]:
+            - paragraph [ref=e202]: EXPLORE.
+            - paragraph [ref=e203]: COMPARE.
+            - paragraph [ref=e204]: DECIDE.
+          - paragraph [ref=e205]: Everything you need after 10th, 12th & Graduation — in one place.
+          - link [ref=e207] [cursor=pointer]:
+            - /url: /get-started
+            - button "Start exploring" [ref=e208]
+        - generic [ref=e212]:
+          - generic [ref=e219]:
+            - heading "Explore" [level=3] [ref=e220]
+            - paragraph [ref=e221]: See the paths that actually fit who you are.
+          - generic [ref=e229]:
+            - heading "Compare" [level=3] [ref=e230]
+            - paragraph [ref=e231]: Weigh options on the things that truly differ.
+          - generic [ref=e239]:
+            - heading "Decide" [level=3] [ref=e240]
+            - paragraph [ref=e241]: Move forward knowing the choice is yours — and made well.
+      - generic [ref=e243]:
+        - generic [ref=e244]:
+          - paragraph [ref=e245]: Everything you need
+          - heading "Guidance that works the way decisions do." [level=2] [ref=e246]
+          - paragraph [ref=e247]: Not a list of features — a complete system for the choices ahead of you.
+        - generic [ref=e249]:
+          - generic [ref=e250]:
+            - generic [ref=e251]: After 10th
+            - heading "The stream is the first fork. Choose it well." [level=3] [ref=e255]
+            - paragraph [ref=e256]: From MPC to BiPC, Commerce to Arts, Diploma to vocational skills — NAVORA shows you what each stream really leads to, and which one fits how you think. Still unsure? That’s exactly what we’re for.
+            - link [ref=e258] [cursor=pointer]:
+              - /url: /get-started
+              - button "Choose my stream" [ref=e259]
+          - generic [ref=e264]:
+            - paragraph [ref=e265]: Streams after 10th
+            - generic [ref=e266]:
+              - generic [ref=e267]:
+                - generic [ref=e268]: MPC
+                - generic [ref=e269]: JEE · NDA · BITSAT
+              - generic [ref=e270]:
+                - generic [ref=e271]: BiPC
+                - generic [ref=e272]: NEET · AIIMS
+              - generic [ref=e273]:
+                - generic [ref=e274]: Commerce
+                - generic [ref=e275]: CA · CUET
+              - generic [ref=e276]:
+                - generic [ref=e277]: Arts / Humanities
+                - generic [ref=e278]: CLAT · CUET
+              - generic [ref=e279]:
+                - generic [ref=e280]: Diploma / Polytechnic
+                - generic [ref=e281]: JEECUP · State
+              - generic [ref=e282]:
+                - generic [ref=e283]: ITI / Vocational
+                - generic [ref=e284]: Trades & crafts
+              - generic [ref=e285]:
+                - generic [ref=e286]: Not Decided Yet
+                - generic [ref=e287]: We help you find it
+        - generic [ref=e288]:
+          - generic [ref=e290]:
+            - generic [ref=e291]: After 10th
+            - heading "Choose Your Stream" [level=3] [ref=e297]
+            - paragraph [ref=e298]: MPC, BiPC, Commerce, Arts — see which stream genuinely fits how you think, learn, and what you love. Not a generic list — a reasoned fit.
+          - generic [ref=e300]:
+            - generic [ref=e301]: Decision support
+            - heading "Compare Options" [level=3] [ref=e308]
+            - paragraph [ref=e309]: Courses, colleges, and careers weighed side by side on fit, growth, and cost. The facts that actually differ — shown plainly.
+          - generic [ref=e311]:
+            - generic [ref=e312]: Always available
+            - heading "AI Guidance" [level=3] [ref=e318]
+            - paragraph [ref=e319]: An advisor that answers follow-ups in plain language — courses, exams, budgets, timelines — grounded in your situation.
+          - generic [ref=e321]:
+            - generic [ref=e322]: Class 12
+            - heading "Entrance & Exams" [level=3] [ref=e327]
+            - paragraph [ref=e328]: The gates that matter — JEE, NEET, CUET, CLAT, and more — mapped to the paths that need them, so nothing creeps up on you.
+          - generic [ref=e330]:
+            - generic [ref=e331]: Any stage
+            - heading "Career Insights" [level=3] [ref=e338]
+            - paragraph [ref=e339]: Honest outlooks on where each path leads — pay, growth, and effort — so you choose with open eyes, not hype.
+          - generic [ref=e341]:
+            - generic [ref=e342]: By design
+            - heading "100% Private" [level=3] [ref=e348]
+            - paragraph [ref=e349]: Your answers stay on your device. No account, no tracking, no selling your data. Guidance that respects your privacy.
+      - generic [ref=e351]:
+        - generic [ref=e352]:
+          - paragraph [ref=e353]: Who it’s for
+          - heading "Your questions are different. So is your guidance." [level=2] [ref=e354]
+        - generic [ref=e355]:
+          - link [ref=e357] [cursor=pointer]:
+            - /url: /get-started
+            - generic [ref=e358]:
+              - img "Class 10 student" [ref=e361]
+              - paragraph [ref=e408]: Class 10
+              - heading "The choices are everywhere. The clarity isn’t." [level=3] [ref=e409]
+              - paragraph [ref=e410]: You’re about to pick a stream — and it feels like it decides everything. It doesn’t. Let’s figure out what genuinely lights you up, then find the path that fits you. No jargon, no pressure.
+          - link [ref=e412] [cursor=pointer]:
+            - /url: /get-started
+            - generic [ref=e413]:
+              - img "Class 12 student" [ref=e416]
+              - paragraph [ref=e466]: Class 12
+              - heading "This decision matters. Let’s make it well." [level=3] [ref=e467]
+              - paragraph [ref=e468]: Colleges, courses, entrance exams, budgets — it’s a lot to weigh. We’ll compare your real options side by side, so the choice is yours — and informed.
+          - link [ref=e470] [cursor=pointer]:
+            - /url: /get-started
+            - generic [ref=e471]:
+              - img "Graduate" [ref=e474]
+              - paragraph [ref=e520]: Graduate
+              - heading "Where do you want your career to go next?" [level=3] [ref=e521]
+              - paragraph [ref=e522]: Whether it’s a promotion, a switch, or a brand-new direction — the right move depends on where you are now. Let’s map the practical next steps.
+          - link [ref=e524] [cursor=pointer]:
+            - /url: /get-started
+            - generic [ref=e525]:
+              - img "Parent discussing education with child" [ref=e528]
+              - paragraph [ref=e602]: Parent
+              - heading "You want the best for them. Let’s make it clear." [level=3] [ref=e603]
+              - paragraph [ref=e604]: Fees, rankings, safety, future-proof careers — you’re balancing a lot. We’ll lay out the options transparently, so you can guide your child with confidence, not guesswork.
+      - generic [ref=e606]:
+        - generic [ref=e607]:
+          - paragraph [ref=e608]: The problem
+          - heading "The future is big. The advice you get shouldn’t be vague." [level=2] [ref=e609]
+          - paragraph [ref=e610]: "Right now, most guidance is a loud opinion: “Do engineering,” “Commerce is safe,” “Go abroad.” But the right answer isn’t a category — it’s a fit. Here’s how NAVORA moves you forward, one honest step at a time."
+        - generic [ref=e612]:
+          - generic [ref=e613]:
+            - generic [ref=e614]:
+              - generic [ref=e615]: "1"
+              - img "Confused student with many options" [ref=e616]
+            - heading "Confusion" [level=3] [ref=e640]
+            - paragraph [ref=e641]: Every decision — stream, course, college — feels permanent. Lakhs of students choose in the dark every year.
+          - generic [ref=e642]:
+            - generic [ref=e643]:
+              - generic [ref=e644]: "2"
+              - img "Student understanding" [ref=e645]
+            - heading "Understanding" [level=3] [ref=e664]
+            - paragraph [ref=e665]: One honest conversation about what you enjoy, how you learn, and what actually matters.
+          - generic [ref=e666]:
+            - generic [ref=e667]:
+              - generic [ref=e668]: "3"
+              - img "Student gaining clarity" [ref=e669]
+            - heading "Clarity" [level=3] [ref=e685]
+            - paragraph [ref=e686]: Your options, compared on the things that matter to you — not a generic list of courses.
+          - generic [ref=e687]:
+            - generic [ref=e688]:
+              - generic [ref=e689]: "4"
+              - img "Student confident" [ref=e690]
+            - heading "Confidence" [level=3] [ref=e704]
+            - paragraph [ref=e705]: You move forward knowing the choice is yours, and that it was made well.
+      - generic [ref=e708]:
+        - generic [ref=e709]:
+          - paragraph [ref=e710]: Why NAVORA
+          - heading "A guide that treats you like a person, not a demographic." [level=2] [ref=e711]
+          - paragraph [ref=e712]: We don’t have a “best course” to sell you. We have a method — built on real decision-making — that helps you see your own options clearly.
+          - link [ref=e713] [cursor=pointer]:
+            - /url: /get-started
+            - button "Find my path" [ref=e714]
+        - generic [ref=e718]:
+          - generic [ref=e724]:
+            - heading "Built around you" [level=3] [ref=e725]
+            - paragraph [ref=e726]: Your interests, strengths, learning style, and budget — not a one-size-fits-all list.
+          - generic [ref=e734]:
+            - heading "Compare honestly" [level=3] [ref=e735]
+            - paragraph [ref=e736]: Weights, trade-offs, and costs shown plainly. No exaggerated promises, no pressure.
+          - generic [ref=e742]:
+            - heading "Ask when you're stuck" [level=3] [ref=e743]
+            - paragraph [ref=e744]: An AI advisor that answers follow-ups in plain language, whenever questions come up.
+      - generic [ref=e751]:
+        - heading "You don’t need another opinion. You need clarity." [level=2] [ref=e756]
+        - paragraph [ref=e757]: Answer a few honest questions and see your path laid out — compared, explained, and free of guesswork.
+        - generic [ref=e758]:
+          - link [ref=e759] [cursor=pointer]:
+            - /url: /get-started
+            - button "Start Your Path" [ref=e760]
+          - link [ref=e764] [cursor=pointer]:
+            - /url: /advisor
+            - button "Talk to the advisor" [ref=e765]
+        - paragraph [ref=e769]: Free to start · No account needed · Private by design
+  - contentinfo [ref=e773]:
+    - generic [ref=e776]:
+      - generic [ref=e777]:
+        - generic [ref=e778]:
+          - generic "NAVORA — Navigate your future" [ref=e779]:
+            - img "NAVORA" [ref=e780]
+          - paragraph [ref=e781]: NAVORA helps students and parents move from confusion to confidence — with clear, honest guidance on the decisions that shape their future.
+          - paragraph [ref=e782]: Navigate your future.
+          - generic [ref=e783]: AI-POWERED EDUCATION GUIDANCE
+          - generic [ref=e788]:
+            - generic [ref=e789]: LEARN
+            - generic [ref=e790]: ·
+            - generic [ref=e791]: EXPLORE
+            - generic [ref=e792]: ·
+            - generic [ref=e793]: DECIDE
+            - generic [ref=e794]: ·
+            - generic [ref=e795]: GROW
+          - generic [ref=e796]:
+            - generic [ref=e797]: Private by design
+            - generic [ref=e801]: No account needed
+            - generic [ref=e805]: Honest, not hype
+        - generic [ref=e808]:
+          - heading "Explore" [level=4] [ref=e809]
+          - list [ref=e810]:
+            - listitem [ref=e811]:
+              - link "Get started" [ref=e812] [cursor=pointer]:
+                - /url: /get-started
+            - listitem [ref=e813]:
+              - link "Dashboard" [ref=e814] [cursor=pointer]:
+                - /url: /dashboard
+            - listitem [ref=e815]:
+              - link "AI advisor" [ref=e816] [cursor=pointer]:
+                - /url: /advisor
+        - generic [ref=e817]:
+          - heading "Guidance" [level=4] [ref=e818]
+          - list [ref=e819]:
+            - listitem [ref=e820]:
+              - link "Class 10 paths" [ref=e821] [cursor=pointer]:
+                - /url: /get-started
+            - listitem [ref=e822]:
+              - link "Class 12 options" [ref=e823] [cursor=pointer]:
+                - /url: /get-started
+            - listitem [ref=e824]:
+              - link "Graduation moves" [ref=e825] [cursor=pointer]:
+                - /url: /get-started
+            - listitem [ref=e826]:
+              - link "For parents" [ref=e827] [cursor=pointer]:
+                - /url: /parents
+        - generic [ref=e828]:
+          - heading "Not sure where to begin?" [level=4] [ref=e829]
+          - link "Take the 2-minute assessment" [ref=e830] [cursor=pointer]:
+            - /url: /get-started
+          - paragraph [ref=e833]: Free to start. Private by design. No account needed.
+      - generic [ref=e834]:
+        - paragraph [ref=e835]: © 2026 NAVORA. All rights reserved.
+        - paragraph [ref=e836]: Navigate your future.

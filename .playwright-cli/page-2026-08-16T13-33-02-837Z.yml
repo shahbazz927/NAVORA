@@ -1,0 +1,71 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e6]:
+      - link "Novera home" [ref=e7] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e8]: Novera
+      - navigation [ref=e15]:
+        - link "Home" [ref=e16] [cursor=pointer]:
+          - /url: /
+        - link "Get started" [ref=e17] [cursor=pointer]:
+          - /url: /get-started
+        - link "Dashboard" [ref=e18] [cursor=pointer]:
+          - /url: /dashboard
+        - link "AI advisor" [ref=e19] [cursor=pointer]:
+          - /url: /advisor
+      - link [ref=e21] [cursor=pointer]:
+        - /url: /get-started
+        - button "Start your path" [ref=e22]
+  - main [ref=e23]:
+    - generic [ref=e628]:
+      - button "Back" [ref=e629] [cursor=pointer]
+      - generic [ref=e632]:
+        - paragraph [ref=e637]: Class 12 student
+        - heading "Let’s figure this out together." [level=1] [ref=e638]
+        - paragraph [ref=e639]: Colleges, courses, entrance exams, budgets — it’s a lot to weigh. We’ll compare your real options side by side, so the choice is yours — and informed.
+        - generic [ref=e640]:
+          - generic [ref=e641]: What’s your name? (optional)
+          - textbox "What’s your name? (optional)" [ref=e642]:
+            - /placeholder: First name
+        - generic [ref=e643]:
+          - button "Skip for now" [ref=e644] [cursor=pointer]
+          - button "Continue" [ref=e645] [cursor=pointer]
+        - paragraph [ref=e648]: Courses and colleges matched to your stream, priorities, and budget.
+  - contentinfo [ref=e486]:
+    - generic [ref=e487]:
+      - generic [ref=e488]:
+        - generic [ref=e489]:
+          - generic [ref=e490]: Novera
+          - paragraph [ref=e497]: Novera helps students and parents move from confusion to confidence — with clear, honest guidance on the decisions that shape their future.
+          - generic [ref=e498]: Honest guidance. No guarantees. No hype.
+        - generic [ref=e503]:
+          - heading "Explore" [level=4] [ref=e504]
+          - list [ref=e505]:
+            - listitem [ref=e506]:
+              - link "Get started" [ref=e507] [cursor=pointer]:
+                - /url: /get-started
+            - listitem [ref=e508]:
+              - link "Dashboard" [ref=e509] [cursor=pointer]:
+                - /url: /dashboard
+            - listitem [ref=e510]:
+              - link "AI advisor" [ref=e511] [cursor=pointer]:
+                - /url: /advisor
+        - generic [ref=e512]:
+          - heading "Guidance" [level=4] [ref=e513]
+          - list [ref=e514]:
+            - listitem [ref=e515]:
+              - link "Stream selection" [ref=e516] [cursor=pointer]:
+                - /url: /get-started
+            - listitem [ref=e517]:
+              - link "Courses & colleges" [ref=e518] [cursor=pointer]:
+                - /url: /get-started
+            - listitem [ref=e519]:
+              - link "Career moves" [ref=e520] [cursor=pointer]:
+                - /url: /get-started
+        - generic [ref=e521]:
+          - heading "Not sure where to begin?" [level=4] [ref=e522]
+          - link "Take the 2-minute assessment" [ref=e523] [cursor=pointer]:
+            - /url: /get-started
+      - generic [ref=e527]:
+        - paragraph [ref=e528]: © 2026 Novera. All rights reserved.
+        - paragraph [ref=e529]: Guidance for learning, made human.

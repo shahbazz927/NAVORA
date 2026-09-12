@@ -1,0 +1,16 @@
+{
+    "userType":  "class12",
+    "messages":  [
+                     {
+                         "content":  "I am a Class 11 PCM student. Should I take JEE coaching now or focus on boards?",
+                         "role":  "user"
+                     }
+                 ],
+    "context":  {
+                    "stream":  {
+                                   "id":  "mpc",
+                                   "label":  "MPC"
+                               },
+                    "stageLabel":  "After Class 12"
+                }
+}

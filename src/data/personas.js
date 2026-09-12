@@ -1,0 +1,78 @@
+import {
+  Backpack,
+  GraduationCap,
+  Briefcase,
+  Users,
+} from 'lucide-react';
+
+export const personas = {
+  class10: {
+    id: 'class10',
+    title: 'Class 10',
+    longTitle: 'Class 10 student',
+    icon: Backpack,
+    accent: 'p10',
+    accentColor: 'var(--color-p10)',
+    accentSoft: 'var(--color-p10-soft)',
+    tone: {
+      heading: 'The choices are everywhere. The clarity isn\u2019t.',
+      intro: 'You\u2019re about to pick a stream \u2014 and it feels like it decides everything. It doesn\u2019t. Let\u2019s figure out what genuinely lights you up, then find the path that fits you. No jargon, no pressure.',
+      question: 'Which subjects do you actually enjoy?',
+      promise: 'A stream that fits how you think and what you love \u2014 explained in plain words.',
+    },
+    cta: 'Explore what fits',
+    steps: ['What you enjoy', 'How you learn', 'Where you\u2019re headed'],
+  },
+  class12: {
+    id: 'class12',
+    title: 'Class 12',
+    longTitle: 'Class 12 student',
+    icon: GraduationCap,
+    accent: 'p12',
+    accentColor: 'var(--color-p12)',
+    accentSoft: 'var(--color-p12-soft)',
+    tone: {
+      heading: 'This decision matters. Let\u2019s make it well.',
+      intro: 'Colleges, courses, entrance exams, budgets \u2014 it\u2019s a lot to weigh. We\u2019ll compare your real options side by side, so the choice is yours \u2014 and informed.',
+      question: 'Which stream are you studying now?',
+      promise: 'Courses and colleges matched to your stream, priorities, and budget.',
+    },
+    cta: 'Compare my options',
+    steps: ['Your stream', 'Your priorities', 'Your real options'],
+  },
+  graduate: {
+    id: 'graduate',
+    title: 'Graduate',
+    longTitle: 'Graduate or professional',
+    icon: Briefcase,
+    accent: 'grad',
+    accentColor: 'var(--color-grad)',
+    accentSoft: 'var(--color-grad-soft)',
+    tone: {
+      heading: 'Where do you want your career to go next?',
+      intro: 'Whether it\u2019s a promotion, a switch, or a brand-new direction \u2014 the right move depends on where you are now. Let\u2019s map the practical next steps.',
+      question: 'What\u2019s your current background?',
+      promise: 'Career moves ranked by effort, timeline, and return \u2014 built for your stage.',
+    },
+    cta: 'Plan my next move',
+    steps: ['Your background', 'Your goal', 'Your next steps'],
+  },
+  parent: {
+    id: 'parent',
+    title: 'Parent',
+    longTitle: 'Parent or guardian',
+    icon: Users,
+    accent: 'pt',
+    accentColor: 'var(--color-pt)',
+    accentSoft: 'var(--color-pt-soft)',
+    tone: {
+      heading: 'You want the best for them. Let\u2019s make it clear.',
+      intro: 'Fees, rankings, safety, future-proof careers \u2014 you\u2019re balancing a lot. We\u2019ll lay out the options transparently, so you can guide your child with confidence, not guesswork.',
+      question: 'What class is your child in?',
+      promise: 'A transparent look at options, costs, and outcomes \u2014 so you can decide together.',
+    },
+    cta: 'Guide with confidence',
+    steps: ['Your child\u2019s stage', 'Your priorities', 'The options, laid out'],
+  },
+};
+

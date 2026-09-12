@@ -1,0 +1,107 @@
+- generic [ref=f1e3]:
+  - banner [ref=f1e4]:
+    - generic [ref=f1e6]:
+      - link "Novera home" [ref=f1e7] [cursor=pointer]:
+        - /url: /
+        - generic [ref=f1e8]: Novera
+      - navigation [ref=f1e15]:
+        - link "Home" [ref=f1e16] [cursor=pointer]:
+          - /url: /
+        - link "Get started" [ref=f1e17] [cursor=pointer]:
+          - /url: /get-started
+        - link "Dashboard" [ref=f1e18] [cursor=pointer]:
+          - /url: /dashboard
+        - link "AI advisor" [ref=f1e19] [cursor=pointer]:
+          - /url: /advisor
+      - link [ref=f1e21] [cursor=pointer]:
+        - /url: /get-started
+        - button "Start your path" [ref=f1e22]
+  - main [ref=f1e23]:
+    - generic [ref=f1e26]:
+      - generic [ref=f1e27]:
+        - button "Back" [ref=f1e28] [cursor=pointer]
+        - link [ref=f1e31] [cursor=pointer]:
+          - /url: /recommendations/class12
+          - button "Add more" [ref=f1e32]
+      - generic [ref=f1e34]:
+        - paragraph [ref=f1e35]: Side by side
+        - heading "Compare your options" [level=1] [ref=f1e36]
+        - paragraph [ref=f1e37]: The same facts, laid out plainly. Decide on the things that actually differ.
+      - table [ref=f1e41]:
+        - rowgroup [ref=f1e42]:
+          - row [ref=f1e43]:
+            - columnheader "Feature" [ref=f1e44]
+            - columnheader [ref=f1e45]:
+              - generic [ref=f1e46]:
+                - heading "MBBS" [level=3] [ref=f1e47]
+                - button "Remove MBBS" [ref=f1e48] [cursor=pointer]
+            - columnheader [ref=f1e52]:
+              - generic [ref=f1e53]:
+                - heading "BDS (Dentistry)" [level=3] [ref=f1e54]
+                - button "Remove BDS (Dentistry)" [ref=f1e55] [cursor=pointer]
+        - rowgroup [ref=f1e59]:
+          - row [ref=f1e60]:
+            - cell "Duration" [ref=f1e61]
+            - cell "5.5 years" [ref=f1e62]
+            - cell "5 years" [ref=f1e63]
+          - row [ref=f1e64]:
+            - cell "Fit for you" [ref=f1e65]
+            - cell "96%" [ref=f1e66]
+            - cell "90%" [ref=f1e68]
+          - row [ref=f1e70]:
+            - cell "Growth" [ref=f1e71]
+            - cell "14%" [ref=f1e72]
+            - cell "12%" [ref=f1e73]
+          - row [ref=f1e74]:
+            - cell "Avg. salary" [ref=f1e75]
+            - cell "₹10-25 LPA" [ref=f1e76]
+            - cell "₹5-12 LPA" [ref=f1e77]
+          - row [ref=f1e78]:
+            - cell "Note" [ref=f1e79]
+            - cell "The flagship clinical route." [ref=f1e80]
+            - cell "Respected clinical path with flexibility." [ref=f1e81]
+      - generic [ref=f1e82]:
+        - link [ref=f1e83] [cursor=pointer]:
+          - /url: /dashboard
+          - button "Save and continue" [ref=f1e84]
+        - link [ref=f1e87] [cursor=pointer]:
+          - /url: /advisor
+          - button "Ask a follow-up" [ref=f1e88]
+  - contentinfo [ref=f1e89]:
+    - generic [ref=f1e90]:
+      - generic [ref=f1e91]:
+        - generic [ref=f1e92]:
+          - generic [ref=f1e93]: Novera
+          - paragraph [ref=f1e100]: Novera helps students and parents move from confusion to confidence — with clear, honest guidance on the decisions that shape their future.
+          - generic [ref=f1e101]: Honest guidance. No guarantees. No hype.
+        - generic [ref=f1e106]:
+          - heading "Explore" [level=4] [ref=f1e107]
+          - list [ref=f1e108]:
+            - listitem [ref=f1e109]:
+              - link "Get started" [ref=f1e110] [cursor=pointer]:
+                - /url: /get-started
+            - listitem [ref=f1e111]:
+              - link "Dashboard" [ref=f1e112] [cursor=pointer]:
+                - /url: /dashboard
+            - listitem [ref=f1e113]:
+              - link "AI advisor" [ref=f1e114] [cursor=pointer]:
+                - /url: /advisor
+        - generic [ref=f1e115]:
+          - heading "Guidance" [level=4] [ref=f1e116]
+          - list [ref=f1e117]:
+            - listitem [ref=f1e118]:
+              - link "Stream selection" [ref=f1e119] [cursor=pointer]:
+                - /url: /get-started
+            - listitem [ref=f1e120]:
+              - link "Courses & colleges" [ref=f1e121] [cursor=pointer]:
+                - /url: /get-started
+            - listitem [ref=f1e122]:
+              - link "Career moves" [ref=f1e123] [cursor=pointer]:
+                - /url: /get-started
+        - generic [ref=f1e124]:
+          - heading "Not sure where to begin?" [level=4] [ref=f1e125]
+          - link "Take the 2-minute assessment" [ref=f1e126] [cursor=pointer]:
+            - /url: /get-started
+      - generic [ref=f1e130]:
+        - paragraph [ref=f1e131]: © 2026 Novera. All rights reserved.
+        - paragraph [ref=f1e132]: Guidance for learning, made human.

@@ -1,0 +1,196 @@
+import { Link } from 'react-router-dom';
+import {
+  ArrowRight,
+  MessageCircle,
+  Compass,
+  Scale,
+  RotateCcw,
+  CheckCircle2,
+  Clock,
+} from 'lucide-react';
+import Button from '../components/Button';
+import { FadeIn } from '../components/AnimatedPage';
+import { useUser } from '../context/UserContext';
+import { useScrollTop } from '../hooks/useLocalStorage';
+import { personas } from '../data/personas';
+import { recommendationDescriptions } from '../data/recommendations';
+
+export default function Dashboard() {
+  useScrollTop();
+  const { userType, answers, onboardingData, comparisonItems } = useUser();
+
+  const persona = personas[userType];
+  const hasProfile = !!userType;
+  const answersCount = Object.keys(answers || {}).length;
+  const name = onboardingData?.name?.trim();
+  const Icon = persona?.icon || Compass;
+
+  const steps = [
+    { label: 'Tell us who you are', done: !!userType, to: '/get-started' },
+    { label: 'Answer the questions', done: answersCount > 0, to: userType ? `/questions/${userType}` : '/get-started' },
+    { label: 'See your path', done: false, to: userType ? `/recommendations/${userType}` : '/get-started' },
+  ];
+
+  const greeting = name
+    ? `Good to see you${persona ? ', ' + name : ''}.`
+    : 'Good to see you.';
+
+  return (
+    <div className="min-h-screen bg-paper-gradient">
+      <div className="max-w-5xl mx-auto px-5 sm:px-8 py-10 lg:py-14">
+        {/* Header */}
+        <FadeIn>
+          {persona && (
+            <span
+              className="inline-flex items-center gap-2 text-sm font-semibold rounded-full px-4 py-1.5 mb-5"
+              style={{ backgroundColor: persona.accentSoft, color: persona.accentColor }}
+            >
+              <Icon className="w-4 h-4" strokeWidth={2} />
+              {persona.title}
+            </span>
+          }
+          <h1 className="font-display font-medium text-4xl sm:text-5xl text-ink tracking-[-0.02em] text-balance">
+            {greeting}
+          </h1>
+          <p className="mt-4 text-lg text-ink-2 leading-relaxed max-w-xl">
+            {hasProfile
+              ? (recommendationDescriptions[userType] || 'Your guidance, in one place.')
+              : 'A quiet place to plan your next step. Start by telling us where you are.'}
+          </p>
+        </FadeIn>
+
+        {/* Progress */}
+        <FadeIn delay={0.1} className="mt-10">
+          <div className="bg-surface border border-line rounded-2xl p-7 sm:p-8">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="font-ui font-semibold text-ink text-lg">Your journey</h2>
+              <span className="text-sm text-ink-3">
+                {steps.filter((s) => s.done).length} of {steps.length} done
+              </span>
+            </div>
+            <div className="space-y-3">
+              {steps.map((step, i) => (
+                <div key={step.label} className="flex items-center gap-4">
+                  <span
+                    className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+                      step.done
+                        ? 'bg-success text-white'
+                        : i === steps.findIndex((s) => !s.done)
+                          ? 'bg-brand-600 text-white'
+                          : 'bg-paper-deep text-ink-3'
+                    }`}
+                  >
+                    {step.done ? (
+                      <CheckCircle2 className="w-4 h-4" />
+                    ) : (
+                      <span className="font-ui font-semibold text-sm">{i + 1}</span>
+                    )}
+                  </span>
+                  <div className="flex-1">
+                    <p className={`font-medium text-sm ${step.done ? 'text-ink-2' : 'text-ink'}`}>
+                      {step.label}
+                    </p>
+                  </div>
+                  {!step.done && (
+                    <Link to={step.to}>
+                      <Button size="sm" variant={step.done ? 'secondary' : 'primary'}>
+                        {i === steps.findIndex((s) => !s.done) ? 'Continue' : 'Start'}
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </FadeIn>
+
+        {/* Actions */}
+        <div className="mt-10 grid sm:grid-cols-3 gap-4">
+          <FadeIn delay={0.15}>
+            <Link to={userType ? `/recommendations/${userType}` : '/get-started'} className="block group">
+              <div className="h-full bg-surface border border-line rounded-2xl p-6 transition-all duration-300 group-hover:shadow-md group-hover:-translate-y-0.5">
+                <span className="inline-flex w-10 h-10 rounded-xl bg-brand-50 text-brand-700 items-center justify-center mb-4">
+                  <Compass className="w-5 h-5" strokeWidth={1.75} />
+                </span>
+                <h3 className="font-ui font-semibold text-ink">Your path</h3>
+                <p className="mt-1.5 text-sm text-ink-2 leading-relaxed">
+                  Revisit your recommendation and the reasoning behind it.
+                </p>
+              </div>
+            </Link>
+          </FadeIn>
+          <FadeIn delay={0.2}>
+            <Link to="/compare" className="block group">
+              <div className="h-full bg-surface border border-line rounded-2xl p-6 transition-all duration-300 group-hover:shadow-md group-hover:-translate-y-0.5">
+                <span className="inline-flex w-10 h-10 rounded-xl bg-paper-deep text-ink-2 items-center justify-center mb-4">
+                  <Scale className="w-5 h-5" strokeWidth={1.75} />
+                </span>
+                <h3 className="font-ui font-semibold text-ink">
+                  Compare
+                  {comparisonItems.length > 0 && (
+                    <span className="ml-2 text-xs font-semibold text-brand-700 bg-brand-50 rounded-full px-2 py-0.5">
+                      {comparisonItems.length}
+                    </span>
+                  )}
+                </h3>
+                <p className="mt-1.5 text-sm text-ink-2 leading-relaxed">
+                  Weigh the options you&rsquo;re torn between, side by side.
+                </p>
+              </div>
+            </Link>
+          </FadeIn>
+          <FadeIn delay={0.25}>
+            <Link to="/advisor" className="block group">
+              <div className="h-full bg-surface border border-line rounded-2xl p-6 transition-all duration-300 group-hover:shadow-md group-hover:-translate-y-0.5">
+                <span className="inline-flex w-10 h-10 rounded-xl bg-spark-50 text-spark-600 items-center justify-center mb-4">
+                  <MessageCircle className="w-5 h-5" strokeWidth={1.75} />
+                </span>
+                <h3 className="font-ui font-semibold text-ink">Ask the advisor</h3>
+                <p className="mt-1.5 text-sm text-ink-2 leading-relaxed">
+                  Get follow-up answers in plain language, any time.
+                </p>
+              </div>
+            </Link>
+          </FadeIn>
+        </div>
+
+        {/* If no profile, gentle nudge */}
+        {!hasProfile && (
+          <FadeIn delay={0.3} className="mt-10">
+            <div className="bg-ink text-white rounded-2xl p-7 sm:p-8 flex flex-col sm:flex-row sm:items-center gap-5">
+              <span className="inline-flex w-11 h-11 rounded-xl bg-white/10 items-center justify-center shrink-0">
+                <Clock className="w-5 h-5" strokeWidth={1.75} />
+              </span>
+              <div className="flex-1">
+                <h3 className="font-ui font-semibold text-lg">About two minutes to a clear path</h3>
+                <p className="mt-1 text-sm text-white/70 leading-relaxed">
+                  Answer a few honest questions and see your options compared and explained.
+                </p>
+              </div>
+              <Link to="/get-started" className="shrink-0">
+                <Button className="bg-white text-ink hover:bg-brand-50">
+                  Start
+                  <ArrowRight className="w-4 h-4" />
+                </Button>
+              </Link>
+            </div>
+          </FadeIn>
+        )}
+
+        {/* Reset */}
+        {hasProfile && (
+          <FadeIn delay={0.3} className="mt-10 text-center">
+            <Link
+              to="/get-started"
+              className="inline-flex items-center gap-1.5 text-sm text-ink-3 hover:text-ink transition-colors"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              Start over with a fresh assessment
+            </Link>
+          </FadeIn>
+        )}
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,21 @@
+
+== stage chooser == heading: Where is your child in their education journey?
+ | 🎒Class 10Your child is comp | 🎓Class 12Your child has com | 🏛️GraduationYour child is a | Back to guidance types
+
+== after stage Graduation == heading: Got it. Your child is already in graduation. What are they studying?
+ | Engineering | Medicine & Healthcare | Computer Applications | Commerce & Finance | Business & Management | Science | Arts & Humanities | Law | Design & Creative | Agriculture & Environment | Education | Other Professional Programs | Back | [DIS]Continue
+
+== family picked == heading: Got it. Your child is already in graduation. What are they studying?
+ | Engineering | Medicine & Healthcare | Computer Applications | Commerce & Finance | Business & Management | Science | Arts & Humanities | Law | Design & Creative | Agriculture & Environment | Education | Other Professional Programs | Back | Continue
+
+== degree screen == heading: What degree are they pursuing?
+ | MBBS | BDS | BAMS | BHMS | BUMS | BSMS | BNYS | B.Sc Nursing | BPT / Physiotherapy | BOT / Occupational Therapy | B.Pharm | Pharm.D | B.Sc Medical Laboratory Tech | B.Sc Radiology / Medical Ima | B.Sc Optometry | B.Sc Cardiac Care Technology | B.Sc Anaesthesia Technology | B.Sc Operation Theatre Techn | B.Sc Respiratory Therapy | B.Sc Dialysis Technology | B.Sc Emergency / Trauma Care | Other Healthcare Degree | Back | [DIS]Continue
+
+== after MBBS click == heading: What degree are they pursuing?
+ | MBBS | BDS | BAMS | BHMS | BUMS | BSMS | BNYS | B.Sc Nursing | BPT / Physiotherapy | BOT / Occupational Therapy | B.Pharm | Pharm.D | B.Sc Medical Laboratory Tech | B.Sc Radiology / Medical Ima | B.Sc Optometry | B.Sc Cardiac Care Technology | B.Sc Anaesthesia Technology | B.Sc Operation Theatre Techn | B.Sc Respiratory Therapy | B.Sc Dialysis Technology | B.Sc Emergency / Trauma Care | Other Healthcare Degree | Back | Continue
+
+Continue button: {"disabled":false}
+BODY(700): Home Get Started Dashboard AI Advisor For Parents Start Your Path PARENT · GRADUATION GUIDANCE Question 2 of 5 What degree are they pursuing? Only degrees within this field are shown. MBBS BDS BAMS BHMS BUMS BSMS BNYS B.Sc Nursing BPT / Physiotherapy BOT / Occupational Therapy B.Pharm Pharm.D B.Sc Medical Laboratory Technology B.Sc Radiology / Medical Imaging B.Sc Optometry B.Sc Cardiac Care Technology B.Sc Anaesthesia Technology B.Sc Operation Theatre Technology B.Sc Respiratory Therapy B.Sc Dialysis Technology B.Sc Emergency / Trauma Care Other Healthcare Degree Back Continue NAVORA helps students and parents move from confusion to confidence — with clear, honest guidance on the decisions 
+has spec-heading: false
+
+ERRORS: none
