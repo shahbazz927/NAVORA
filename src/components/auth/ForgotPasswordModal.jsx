@@ -18,7 +18,7 @@ export default function ForgotPasswordModal({ isOpen, onClose, theme = 'light' }
     setErrorMessage(null);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-        redirectTo: window.location.origin,
+        redirectTo: `${window.location.origin}/reset-password`,
       });
       if (error) {
         setErrorMessage(error.message || 'Failed to send recovery email.');
