@@ -38,8 +38,9 @@ const QUICK_PROMPTS = [
  * one-shot "get my career plan" card, lets the user keep asking follow-ups
  * in a real back-and-forth using the existing /api/advisor/chat backend.
  */
-export default function AIAdvisorChat({ userType }) {
-  const { answers } = useUser();
+export default function AIAdvisorChat({ userType, answersOverride }) {
+  const { answers: ctxAnswers } = useUser();
+  const answers = answersOverride || ctxAnswers;
 
   // The assessment stores the normal Graduation journey as "graduation", while
   // the advisor + context engine speak "graduate". Map for consistency.

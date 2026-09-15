@@ -226,7 +226,7 @@ export function getTwelveRecommendations(answers={}){
     if(elig==='direct') score+=0.5;
     if(score>0) scores.set(career.id, score);
   }
-  if(exploring && scores.size<MAX_RECOMMENDATIONS){
+  if(exploring){
     for(const cluster of EXPLORATORY_CLUSTERS){
       for(const id of cluster.careers){
         const elig=ELIGIBILITY[id]?.[stream];

@@ -111,11 +111,17 @@ function workPrefMatch(profile, career) {
   return interestMatch(profile, career) * 0.9 + 0.1; // reuse
 }
 function educationCompatibility(profile, career) {
-  const stream = profile.stream; // mpc/bipc/commerce/arts
+  let stream = (profile.stream || '').toLowerCase();
+  // legacy normalisation
+  if (stream === 'commerce') stream = 'mec';
+  if (stream === 'arts') stream = 'cec';
   const family = (profile.family || '').toLowerCase();
   const degreeFamily = (profile.degreeFamily || '').toLowerCase();
   // Directly accessible
   if (stream && career.streamAffinity?.includes(stream)) return 1;
+  // mec/cec should also match legacy commerce/arts affinities
+  if (stream === 'mec' && career.streamAffinity?.includes('commerce')) return 1;
+  if (stream === 'cec' && (career.streamAffinity?.includes('arts') || career.streamAffinity?.includes('commerce'))) return 0.9;
   if (degreeFamily && career.familyAffinity?.some((f) => f.toLowerCase() === degreeFamily)) return 1;
   if (family && career.familyAffinity?.some((f) => family.includes(f.toLowerCase()) || f.toLowerCase().includes(family))) return 1;
   // If a degree is known but the career belongs to a different field

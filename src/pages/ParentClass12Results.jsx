@@ -256,7 +256,7 @@ export default function ParentClass12Results({ result, onBack, onRetake, onSaveD
             <section aria-labelledby="pc12-col" className="rounded-[14px] p-5 text-white shadow-card" style={{ background: 'linear-gradient(135deg, #0f1f4d, #0a1638)' }}>
               <h2 id="pc12-col" className="flex items-center gap-2 text-[0.72rem] font-bold uppercase text-white/70"><GraduationCap className="w-4 h-4" />Next: colleges</h2>
               <p className="mt-2 text-sm text-white/85">We can shortlist colleges for the recommended degree with eligibility, fees and placement context.</p>
-              <div className="mt-4"><Button size="md" className="bg-white text-ink hover:bg-brand-50 w-full" onClick={() => navigate('/recommendations/parent')}>View colleges<ArrowRight className="w-4 h-4" /></Button></div>
+              <div className="mt-4"><Button size="md" className="w-full" onClick={() => navigate('/recommendations/parent')}>View colleges<ArrowRight className="w-4 h-4" /></Button></div>
             </section>
             <section className="bg-paper border border-line rounded-[14px] p-5">
               <p className="text-sm text-ink-2">Not sure this feels right? Explore the alternatives above before deciding.</p>

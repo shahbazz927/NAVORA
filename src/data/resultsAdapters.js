@@ -34,12 +34,13 @@ export function contextFor(flowKey, answers){
 }
 
 export function headerFor(flowKey){
-  if(flowKey==='student_class12') return { eyebrow:'Your career direction match', title:'Your Career Direction', subtitle:'Based on your stream, interests, strengths and priorities, here are the paths worth considering.' };
-  if(flowKey==='parent_class12') return { eyebrow:'Your career direction match', title:"Your Child's Degree & Career Direction", subtitle:"Based on what you shared about your child's background, interests and priorities, here are the paths worth considering." };
-  if(flowKey==='student_graduation') return { eyebrow:'Your career direction match', title:'Your Career Direction', subtitle:'Based on your degree, skills, interests and goals, here are the career directions worth exploring.' };
-  if(flowKey==='parent_graduation') return { eyebrow:'Your career direction match', title:"Your Child's Career Direction", subtitle:"Based on your child's degree and aspirations, here are the directions worth exploring." };
-  if(flowKey==='parent_class10') return { eyebrow:'Your academic direction match', title:"Your Child's Stream Direction", subtitle:"Based on what you shared about your child's interests and strengths, here's the stream direction that fits best — with alternatives." };
-  return { eyebrow:'Your results', title:'Your Direction', subtitle:'Based on your answers, here are the paths worth considering.' };
+  const guidanceNote = 'Your answers don\u2019t decide your future. They help you see it more clearly — with reasoning, alternatives and trade-offs you can weigh together.';
+  if(flowKey==='student_class12') return { eyebrow:'Assessment-led guidance', title:'Your Career Direction', subtitle: guidanceNote };
+  if(flowKey==='parent_class12') return { eyebrow:'Assessment-led guidance', title:"Your Child's Degree & Career Direction", subtitle: guidanceNote };
+  if(flowKey==='student_graduation') return { eyebrow:'Assessment-led guidance', title:'Your Career Direction', subtitle: guidanceNote };
+  if(flowKey==='parent_graduation') return { eyebrow:'Assessment-led guidance', title:"Your Child's Career Direction", subtitle: guidanceNote };
+  if(flowKey==='parent_class10') return { eyebrow:'Assessment-led guidance', title:"Your Child's Stream Direction", subtitle: guidanceNote };
+  return { eyebrow:'Assessment-led guidance', title:'Your Direction', subtitle: guidanceNote };
 }
 
 export function nextStepsForResult(flowKey, primaryCareer, gradProfile){

@@ -22,8 +22,9 @@ function Chip({ children, tone = 'neutral' }) {
  * Sends the student's completed questionnaire answers to POST /api/career-advice
  * (via the NAVORA backend → OpenRouter) and renders the structured result.
  */
-export default function AICareerAdvisor({ userType }) {
-  const { answers } = useUser();
+export default function AICareerAdvisor({ userType, answersOverride }) {
+  const { answers: contextAnswers } = useUser();
+  const answers = answersOverride || contextAnswers;
   const [status, setStatus] = useState('idle'); // idle | loading | error | done
   const [advice, setAdvice] = useState(null);
   const [error, setError] = useState(null);
@@ -36,7 +37,7 @@ export default function AICareerAdvisor({ userType }) {
       setAdvice(result);
       setStatus('done');
     } catch (err) {
-      setError(err.message || 'The AI advisor could not generate advice. Please try again.');
+      setError(err.message || 'The advisor could not generate advice. Please try again.');
       setStatus('error');
     }
   };
@@ -48,8 +49,8 @@ export default function AICareerAdvisor({ userType }) {
           <Sparkles className="w-4 h-4" strokeWidth={1.75} />
         </span>
         <div>
-          <h3 className="font-ui font-bold text-xl text-ink leading-tight">AI Career Advisor</h3>
-          <p className="text-xs text-ink-3">Real talk from a counsellor who&rsquo;s read your answers &mdash; like a one-on-one session, not a search result.</p>
+          <h3 className="font-ui font-bold text-xl text-ink leading-tight">Career Advisor</h3>
+          <p className="text-xs text-ink-3">A supporting layer — helps you understand your results and explore next steps, grounded in your answers.</p>
         </div>
       </div>
 
@@ -252,7 +253,7 @@ export default function AICareerAdvisor({ userType }) {
           <div className="flex items-center gap-2 mb-3">
             <p className="eyebrow text-ink-3">Keep the conversation going</p>
           </div>
-          <AIAdvisorChat userType={userType} />
+          <AIAdvisorChat userType={userType} answersOverride={answers} />
         </div>
       )}
     </section>

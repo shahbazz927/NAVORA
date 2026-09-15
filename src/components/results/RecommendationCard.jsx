@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { ChevronDown, Bookmark, ArrowRight } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ChevronDown, Bookmark, ArrowRight, X, Briefcase, ClipboardList, Target, Award, Star, BookOpen } from 'lucide-react';
 import Button from '../Button';
 import FitRing from './FitRing';
 
@@ -12,6 +12,7 @@ function MatchPill({ level }) {
 
 export default function RecommendationCard({ item, rank, compared, cantAdd, onToggleCompare, onToggleDetail, open, saved, onSave, onExplore }) {
   const [savedLocal, setSavedLocal] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
   const isSaved = saved ?? savedLocal;
   const c = item.career || item;
   const title = c.title || item.title || '—';
@@ -25,7 +26,19 @@ export default function RecommendationCard({ item, rank, compared, cantAdd, onTo
   const cons = item.considerations || item.tradeOffs || [];
   const factors = item.factors || item.breakdown ? (Array.isArray(item.factors) ? item.factors : null) : null;
   const activity = item.activity || (c.experienceIdeas||[])[0] || 'Talk to someone doing this work.';
+  const roles = c.roles || [];
+  const responsibilities = c.responsibilities || [];
+  const objectives = c.objectives || [];
+  const skillsAndQualifications = c.skillsAndQualifications || [];
+  const preferredQualifications = c.preferredQualifications || [];
   const isFirst = rank === 0;
+
+  useEffect(() => {
+    if (!showDetails) return;
+    const onKey = (e) => { if (e.key === 'Escape') setShowDetails(false); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [showDetails]);
 
   return (
     <article aria-labelledby={`rec-t-${c.id || rank}`} className={`bg-white border rounded-[14px] p-5 sm:p-6 ${isFirst ? 'border-[#c9d6ff] shadow-card' : 'border-line shadow-card'}`}>
@@ -103,10 +116,113 @@ export default function RecommendationCard({ item, rank, compared, cantAdd, onTo
       <div className="mt-4 pt-4 border-t border-line flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <p className="text-xs text-ink-3">Based on your questionnaire responses. Guidance, not a prediction.</p>
         <div className="flex items-center gap-2 shrink-0">
+          <Button variant="primary" size="sm" onClick={() => setShowDetails(true)} aria-haspopup="dialog">Learn more<ArrowRight className="w-3.5 h-3.5" /></Button>
           <Button variant="secondary" size="sm" onClick={()=>{ setSavedLocal(true); onSave?.(); }} aria-pressed={isSaved}><Bookmark className="w-3.5 h-3.5"/>{isSaved ? 'Saved ✓' : 'Save'}</Button>
           {onExplore && <Button variant="primary" size="sm" onClick={onExplore}>Explore career<ArrowRight className="w-3.5 h-3.5"/></Button>}
         </div>
       </div>
+
+      {showDetails && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby={`rec-learn-${c.id || rank}`}>
+          <button type="button" aria-label="Close details" onClick={() => setShowDetails(false)} className="absolute inset-0 bg-ink/60 backdrop-blur-sm" />
+          <div className="relative bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[85vh] overflow-hidden flex flex-col animate-in fade-in zoom-in duration-200">
+            <div className="flex items-start justify-between gap-4 px-6 py-5 border-b border-line shrink-0">
+              <div className="min-w-0">
+                <p className="eyebrow text-brand-600">Your Career Direction</p>
+                <h3 id={`rec-learn-${c.id || rank}`} className="mt-1 font-ui font-bold text-xl text-ink leading-tight">{title}</h3>
+                {category && <p className="mt-1 text-sm text-ink-3">{category}</p>}
+              </div>
+              <button type="button" onClick={() => setShowDetails(false)} className="shrink-0 p-2 rounded-full hover:bg-paper-deep text-ink-3 hover:text-ink transition-colors" aria-label="Close">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="overflow-y-auto px-6 py-6 space-y-6">
+              {c.description && <p className="text-sm text-ink-2 leading-relaxed">{c.description}</p>}
+              {c.subjects?.length > 0 && (
+                <div>
+                  <h4 className="flex items-center gap-2 text-[0.72rem] font-bold tracking-[0.14em] uppercase text-ink-3"><BookOpen className="w-4 h-4 text-brand-500" /> Subjects you&apos;ll study</h4>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {c.subjects.map((s) => (
+                      <span key={s} className="inline-flex items-center rounded-full bg-brand-50 border border-brand-100 px-3 py-1.5 text-sm font-medium text-brand-700">{s}</span>
+                    ))}
+                  </div>
+                  <p className="mt-2 text-xs text-ink-3">Core subjects for this stream/pathway — varies slightly by board/school.</p>
+                </div>
+              )}
+              {roles.length > 0 && (
+                <div>
+                  <h4 className="flex items-center gap-2 text-[0.72rem] font-bold tracking-[0.14em] uppercase text-ink-3"><Briefcase className="w-4 h-4 text-brand-500" /> Job Roles</h4>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {roles.map((r) => (
+                      <span key={r} className="inline-flex items-center rounded-full bg-brand-50 border border-brand-100 px-3 py-1.5 text-sm font-medium text-brand-700">{r}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {responsibilities.length > 0 && (
+                <div>
+                  <h4 className="flex items-center gap-2 text-[0.72rem] font-bold tracking-[0.14em] uppercase text-ink-3"><ClipboardList className="w-4 h-4 text-brand-500" /> Roles & Responsibilities</h4>
+                  <ul className="mt-3 space-y-2.5">
+                    {responsibilities.map((r) => (
+                      <li key={r} className="flex gap-2.5 text-sm text-ink-2 leading-relaxed"><span className="mt-2 w-1.5 h-1.5 rounded-full bg-brand-500 shrink-0" aria-hidden="true" /><span>{r}</span></li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {objectives.length > 0 && (
+                <div>
+                  <h4 className="flex items-center gap-2 text-[0.72rem] font-bold tracking-[0.14em] uppercase text-ink-3"><Target className="w-4 h-4 text-brand-500" /> Objectives of this role</h4>
+                  <ul className="mt-3 space-y-2.5">
+                    {objectives.map((r) => (
+                      <li key={r} className="flex gap-2.5 text-sm text-ink-2 leading-relaxed"><span className="mt-2 w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" aria-hidden="true" /><span>{r}</span></li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {skillsAndQualifications.length > 0 && (
+                <div>
+                  <h4 className="flex items-center gap-2 text-[0.72rem] font-bold tracking-[0.14em] uppercase text-ink-3"><Award className="w-4 h-4 text-brand-500" /> Skills and Qualifications</h4>
+                  <ul className="mt-3 space-y-2.5">
+                    {skillsAndQualifications.map((r) => (
+                      <li key={r} className="flex gap-2.5 text-sm text-ink-2 leading-relaxed"><span className="mt-2 w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" aria-hidden="true" /><span>{r}</span></li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {preferredQualifications.length > 0 && (
+                <div>
+                  <h4 className="flex items-center gap-2 text-[0.72rem] font-bold tracking-[0.14em] uppercase text-ink-3"><Star className="w-4 h-4 text-amber-500" /> Preferred Qualifications</h4>
+                  <ul className="mt-3 space-y-2.5">
+                    {preferredQualifications.map((r) => (
+                      <li key={r} className="flex gap-2.5 text-sm text-ink-2 leading-relaxed"><span className="mt-2 w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" aria-hidden="true" /><span>{r}</span></li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {(c.skillsToDevelop?.length > 0 || c.educationRoutes?.length > 0) && (
+                <div className="grid sm:grid-cols-2 gap-4 pt-2 border-t border-line">
+                  {c.skillsToDevelop?.length > 0 && (
+                    <div className="rounded-xl bg-paper border border-line p-4">
+                      <p className="text-xs font-bold uppercase tracking-wide text-ink-3">Skills to develop</p>
+                      <p className="mt-2 text-sm text-ink-2 leading-relaxed">{c.skillsToDevelop.join(' · ')}</p>
+                    </div>
+                  )}
+                  {c.educationRoutes?.length > 0 && (
+                    <div className="rounded-xl bg-paper border border-line p-4">
+                      <p className="text-xs font-bold uppercase tracking-wide text-ink-3">Education route</p>
+                      <p className="mt-2 text-sm text-ink-2 leading-relaxed">{c.educationRoutes[0]}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+            <div className="px-6 py-4 border-t border-line bg-paper flex justify-end gap-2 shrink-0">
+              <Button variant="secondary" size="md" onClick={() => setShowDetails(false)}>Close</Button>
+              <Button variant="primary" size="md" onClick={() => setShowDetails(false)}>Got it</Button>
+            </div>
+          </div>
+        </div>
+      )}
     </article>
   );
 }

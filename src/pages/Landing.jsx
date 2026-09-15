@@ -13,6 +13,7 @@ import {
   University,
   Users,
   Target,
+  TrendingUp,
   Lightbulb,
   Lock,
   Landmark,
@@ -71,9 +72,9 @@ const features = [
   },
   {
     icon: Sparkles,
-    title: 'AI Guidance',
-    copy: 'An advisor that answers follow-ups in plain language — courses, exams, budgets, timelines — grounded in your situation.',
-    point: 'Always available',
+    title: 'Guidance that continues',
+    copy: 'Your assessment comes first. Afterwards, a supporting advisor helps you understand your result, compare options and explore next steps — grounded in your answers.',
+    point: 'Supporting layer',
     tone: 'ai',
   },
   {
@@ -129,18 +130,18 @@ export default function Landing() {
             <FadeIn className="lg:col-span-6">
               <span className="inline-flex items-center gap-2 rounded-full bg-white/80 border border-brand-100 px-4 py-1.5 shadow-sm mb-8">
                 <Logo size="sm" className="mr-1" />
-                <span className="eyebrow text-brand-700">AI-Powered Education Guidance</span>
+                <span className="eyebrow text-brand-700">Personalized Education &amp; Career Guidance</span>
               </span>
 
-              <h1 className="font-ui font-bold text-[2.7rem] leading-[1.04] sm:text-6xl lg:text-[4rem] text-ink text-balance tracking-[-0.03em]">
-                Choosing your future shouldn&rsquo;t feel like a{' '}
-                <em className="font-display italic font-medium text-gradient">gamble</em>.
+              <p className="font-ui font-bold tracking-[0.14em] text-xs sm:text-[0.78rem] text-ink-3 uppercase mb-3">NAVORA — Navigate your future.</p>
+
+              <h1 className="font-ui font-bold text-[2.55rem] leading-[1.05] sm:text-6xl lg:text-[3.9rem] text-ink text-balance tracking-[-0.03em]">
+                The right direction starts with the{' '}
+                <em className="font-display italic font-medium text-gradient">right questions</em>.
               </h1>
 
-              <p className="mt-7 text-lg text-ink-2 leading-relaxed max-w-xl">
-                Stream, course, college, career — every choice feels permanent, and
-                everyone has an opinion. NAVORA helps you understand your real options,
-                compare them honestly, and decide with confidence.
+              <p className="mt-4 text-[1.02rem] text-ink-2 leading-relaxed max-w-xl">
+                Before recommending a course or career, NAVORA first asks about you — what you enjoy, what you&rsquo;re good at, what matters to you, and where you see yourself going. Your answers help us narrow the choices that actually make sense for your situation.
               </p>
 
               <div className="mt-9 flex flex-col sm:flex-row items-start sm:items-center gap-3">
@@ -150,12 +151,11 @@ export default function Landing() {
                     <ArrowRight className="w-4 h-4" />
                   </Button>
                 </Link>
-                <Link to="/advisor">
+                <a href="#how-it-works">
                   <Button size="lg" variant="secondary">
-                    <MessageCircle className="w-4 h-4" />
-                    Ask the AI Advisor
+                    How it works
                   </Button>
-                </Link>
+                </a>
               </div>
 
               <div className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-2">
@@ -284,7 +284,87 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ── EXPLORE · COMPARE · DECIDE ──────────────────── */}
+      {/* ── Questionnaire — the heart of NAVORA ─────────── */}
+      <section id="how-it-works" className="bg-paper border-t border-line">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 py-20 lg:py-24">
+          <div className="grid lg:grid-cols-12 gap-10 items-start">
+            <FadeIn className="lg:col-span-6">
+              <p className="eyebrow text-brand-600 mb-3">Assessment-led guidance</p>
+              <h2 className="font-ui font-bold text-3xl sm:text-4xl text-ink tracking-[-0.03em] text-balance">
+                Good advice doesn&rsquo;t begin with an answer. It begins with better questions.
+              </h2>
+              <p className="mt-5 text-ink-2 leading-relaxed">
+                We don&rsquo;t want to tell you what to become after five generic questions. We want to understand where you are first — your interests, strengths, priorities and circumstances — before narrowing the directions worth considering.
+              </p>
+              <p className="mt-4 text-ink-2 leading-relaxed">
+                The questionnaire is the heart of NAVORA. Every recommendation, comparison and explanation is built around your answers, not a pre-written list of careers.
+              </p>
+              <div className="mt-8">
+                <Link to="/get-started">
+                  <Button shine>
+                    Start Your Path
+                    <ArrowRight className="w-4 h-4" />
+                  </Button>
+                </Link>
+              </div>
+            </FadeIn>
+            <FadeIn delay={0.1} className="lg:col-span-6">
+              <div className="bg-surface border border-line rounded-[1.6rem] p-7 sm:p-8 shadow-card">
+                <p className="eyebrow text-ink-3 mb-4">How the assessment works</p>
+                <div className="space-y-5">
+                  {[
+                    { n: '01', t: 'You answer honestly', d: 'What you enjoy, how you learn, what matters to you, and where you see yourself headed — about two minutes.' },
+                    { n: '02', t: 'We narrow, not prescribe', d: 'NAVORA identifies suitable education and career directions and explains why they may fit — including trade-offs.' },
+                    { n: '03', t: 'You compare and decide', d: 'See alternatives side by side, understand the reasoning, and make a choice that feels like yours.' },
+                  ].map((s) => (
+                    <div key={s.n} className="flex gap-4">
+                      <span className="w-9 h-9 rounded-full bg-brand-50 border border-brand-100 text-brand-700 font-display italic text-sm flex items-center justify-center shrink-0">{s.n}</span>
+                      <div>
+                        <p className="font-ui font-semibold text-ink">{s.t}</p>
+                        <p className="mt-1 text-sm text-ink-2 leading-relaxed">{s.d}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <p className="mt-6 text-xs text-ink-3 leading-relaxed border-t border-line pt-4">No generic hype. No guaranteed predictions. Just thoughtful guidance built around your situation.</p>
+              </div>
+            </FadeIn>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Results — guidance, not prediction ──────────────── */}
+      <section className="bg-surface border-t border-line">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 py-20 lg:py-24">
+          <div className="max-w-3xl mx-auto text-center">
+            <FadeIn>
+              <p className="eyebrow text-brand-600 mb-3">Your results</p>
+              <h2 className="font-ui font-bold text-3xl sm:text-4xl text-ink tracking-[-0.03em] text-balance">
+                Your answers don&rsquo;t decide your future. They help you see it more clearly.
+              </h2>
+              <p className="mt-5 text-ink-2 leading-relaxed">
+                NAVORA identifies directions that may suit you, explains the reasoning behind each one, highlights alternatives, and helps you compare. You stay in charge of the decision — we help you make sense of the choices.
+              </p>
+            </FadeIn>
+          </div>
+          <FadeIn delay={0.1} className="mt-10">
+            <div className="grid sm:grid-cols-3 gap-4">
+              {[
+                { t: 'Why this fits', d: 'Each suggestion comes with a plain-language explanation — interest alignment, stream fit, and practical considerations.' },
+                { t: 'What else to consider', d: 'Alternatives and trade-offs, so you understand what you gain and what you give up with each path.' },
+                { t: 'The conversation continues', d: 'Ask follow-up questions, compare options, and explore courses and timelines with the supporting advisor.' },
+              ].map((c) => (
+                <div key={c.t} className="bg-paper border border-line rounded-[1.4rem] p-6">
+                  <h3 className="font-ui font-semibold text-ink">{c.t}</h3>
+                  <p className="mt-2 text-sm text-ink-2 leading-relaxed">{c.d}</p>
+                </div>
+              ))}
+            </div>
+          </FadeIn>
+        </div>
+      </section>
+
+      {/* ── LEARN · EXPLORE · DECIDE · GROW ──────────────── */}
       <section className="bg-brand-950 text-white relative overflow-hidden">
         <div className="absolute inset-0 bg-mesh-dark opacity-90" />
         <Swoosh variant="dark" />
@@ -293,14 +373,15 @@ export default function Landing() {
         <div className="relative max-w-7xl mx-auto px-5 sm:px-8 py-20 lg:py-28">
           <div className="grid lg:grid-cols-12 gap-12 items-center">
             <FadeIn className="lg:col-span-7">
-              <p className="eyebrow text-brand-300 mb-5">Your method</p>
+              <p className="eyebrow text-brand-300 mb-5">How guidance should feel</p>
               <div className="font-ui font-bold tracking-[-0.03em] leading-[1.05]">
-                <p className="text-3xl sm:text-5xl">EXPLORE<span className="text-brand-400">.</span></p>
-                <p className="text-3xl sm:text-5xl mt-2">COMPARE<span className="text-brand-400">.</span></p>
-                <p className="text-3xl sm:text-5xl mt-2 text-gradient">DECIDE<span className="text-brand-400">.</span></p>
+                <p className="text-2xl sm:text-5xl">LEARN<span className="text-brand-400">.</span> <span className="text-white/80 text-xl sm:text-3xl font-normal">understand you first</span></p>
+                <p className="text-2xl sm:text-5xl mt-2">EXPLORE<span className="text-brand-400">.</span> <span className="text-white/80 text-xl sm:text-3xl font-normal">what could fit</span></p>
+                <p className="text-2xl sm:text-5xl mt-2">DECIDE<span className="text-brand-400">.</span> <span className="text-white/80 text-xl sm:text-3xl font-normal">with reasoning, not pressure</span></p>
+                <p className="text-2xl sm:text-5xl mt-2 text-gradient">GROW<span className="text-brand-400">.</span> <span className="text-white/80 text-xl sm:text-3xl font-normal">and revisit as you do</span></p>
               </div>
-              <p className="mt-7 text-lg text-white/80 leading-relaxed max-w-xl">
-                Everything you need after 10th, 12th &amp; Graduation — in one place.
+              <p className="mt-7 text-base text-white/70 leading-relaxed max-w-xl">
+                Guidance isn&apos;t a single answer. It&apos;s learning who you are, exploring what fits, weighing the trade-offs, and growing into a decision you can stand behind.
               </p>
               <div className="mt-9">
                 <Link to="/get-started">
@@ -314,13 +395,14 @@ export default function Landing() {
 
             <div className="lg:col-span-5 space-y-4">
               {[
-                { icon: Compass, title: 'Explore', copy: 'See the paths that actually fit who you are.' },
-                { icon: Scale, title: 'Compare', copy: 'Weigh options on the things that truly differ.' },
-                { icon: Target, title: 'Decide', copy: 'Move forward knowing the choice is yours — and made well.' },
+                { icon: BookOpen, title: 'Learn', copy: 'We start by understanding you — interests, strengths, priorities, context — before suggesting anything.' },
+                { icon: Compass, title: 'Explore', copy: 'See the directions that actually fit, with honest explanations of why they might suit you.' },
+                { icon: Scale, title: 'Decide', copy: 'Compare alternatives on what truly differs, so the choice feels considered, not rushed.' },
+                { icon: TrendingUp || Target, title: 'Grow', copy: 'Revisit and refine as your situation changes. Good decisions evolve with you.' },
               ].map((item, i) => {
                 const Icon = item.icon;
                 return (
-                  <FadeIn key={item.title} delay={0.1 * i}>
+                  <FadeIn key={item.title} delay={0.08 * i}>
                     <div className="flex gap-5 bg-white/5 border border-white/10 rounded-[1.4rem] p-6 backdrop-blur-sm">
                       <span className="w-11 h-11 rounded-xl bg-white/10 text-spark-300 flex items-center justify-center shrink-0">
                         <Icon className="w-5 h-5" strokeWidth={1.75} />
@@ -516,9 +598,9 @@ export default function Landing() {
 
             <StaggerContainer className="lg:col-span-7 space-y-4">
               {[
-                { icon: Lightbulb, title: 'Built around you', copy: 'Your interests, strengths, learning style, and budget — not a one-size-fits-all list.' },
-                { icon: Scale, title: 'Compare honestly', copy: 'Weights, trade-offs, and costs shown plainly. No exaggerated promises, no pressure.' },
-                { icon: MessageCircle, title: 'Ask when you\'re stuck', copy: 'An AI advisor that answers follow-ups in plain language, whenever questions come up.' },
+                { icon: Lightbulb, title: 'Built around you', copy: 'Your interests, strengths, learning style, and priorities — not a one-size-fits-all list. Guidance built around your answers.' },
+                { icon: Scale, title: 'Compare honestly', copy: 'Fit, trade-offs, and costs shown plainly. No exaggerated promises, no pressure.' },
+                { icon: MessageCircle, title: 'The conversation continues', copy: 'The assessment is just the start. A supporting advisor helps you understand your result and explore options further.' },
               ].map((reason) => {
                 const Icon = reason.icon;
                 return (

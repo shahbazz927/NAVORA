@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { ArrowLeft, Check, X } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { ArrowLeft, ArrowRight, Check, X } from 'lucide-react';
 import Button from '../Button';
 import ResultsHeader from './ResultsHeader';
 import ResultsContext from './ResultsContext';
@@ -41,9 +42,17 @@ export default function ResultsLayout({
           <aside className="space-y-4 lg:sticky lg:top-24">
             {sidebarExams && <ExamCalendar exams={sidebarExams} />}
             {sidebarNextColleges}
-            <section className="bg-paper border border-line rounded-[14px] p-5">
-              <p className="text-sm font-semibold text-ink">Not fully convinced?</p>
-              <p className="mt-1 text-sm text-ink-2 leading-relaxed">That&apos;s okay. A recommendation is a starting point, not a final decision. Compare alternatives before choosing.</p>
+            <section className="bg-brand-950 border border-white/10 rounded-[14px] p-5 relative overflow-hidden">
+              <div className="absolute inset-0 bg-mesh-dark opacity-40 pointer-events-none" />
+              <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-brand-600/20 blur-2xl pointer-events-none" />
+              <p className="relative text-sm font-semibold text-white">Not fully convinced?</p>
+              <p className="relative mt-1 text-sm text-white/70 leading-relaxed">That&apos;s completely okay. Let&apos;s talk it through 1-on-1 with a career counselor.</p>
+              <Link to="/support" className="relative mt-3 inline-flex">
+                <Button size="sm" className="bg-brand-600 hover:bg-brand-700 text-white border-0">
+                  Talk to a Career Counselor
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </Link>
             </section>
           </aside>
         </div>

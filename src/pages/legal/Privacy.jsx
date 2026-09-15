@@ -18,7 +18,7 @@ export default function Privacy() {
       <ul>
         <li><strong>Account information</strong> — email address and display name when you create an account or sign in. If you use Google, GitHub, or Apple sign-in, we receive only what the authentication provider shares.</li>
         <li><strong>Questionnaire information</strong> — answers about your education stage, stream, subjects, interests, strengths, and preferences that you enter in the onboarding and guidance flows.</li>
-        <li><strong>AI Advisor context</strong> — when you request AI-powered guidance, the answers relevant to your question are sent to our server to generate a response. The server does not keep a separate copy of your questionnaire.</li>
+        <li><strong>Advisor context</strong> — when you request personalized guidance, the answers relevant to your question are sent to our server to generate a response. The server does not keep a separate copy of your questionnaire.</li>
       </ul>
 
       <h2>Information stored in your browser</h2>
@@ -29,7 +29,7 @@ export default function Privacy() {
       <h2>Why we use this information</h2>
       <ul>
         <li>To create and maintain your account and keep you signed in.</li>
-        <li>To generate personalized education and career recommendations and AI Advisor replies.</li>
+        <li>To generate personalized education and career recommendations and advisor replies based on your assessment.</li>
         <li>To troubleshoot issues and improve the quality of guidance during this early stage of the product.</li>
       </ul>
 

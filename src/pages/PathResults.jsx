@@ -22,21 +22,6 @@ export default function PathResults() {
   const isV2 = Boolean(answers.educationStatus || answers.streamV2 || answers.interestArea);
   const summary = isV2 ? (answers.streamV2 ? resolveTwelveSummary(answers) : null) : resolveAnswerSummary(answers);
 
-  if (!summary) {
-    return (
-      <div className="min-h-screen bg-paper-gradient">
-        <div className="max-w-2xl mx-auto px-5 sm:px-8 py-10 lg:py-14">
-          <div className="bg-white border border-line rounded-[1.6rem] shadow-card p-8 sm:p-10 text-center">
-            <span className="inline-flex w-14 h-14 rounded-2xl bg-brand-50 text-brand-600 items-center justify-center mb-6"><Compass className="w-7 h-7" strokeWidth={1.75} /></span>
-            <h1 className="font-ui font-bold text-3xl sm:text-4xl text-ink tracking-[-0.03em]">Your NAVORA Path</h1>
-            <p className="mt-3 text-ink-2 leading-relaxed">You haven&apos;t taken the career questionnaire yet.</p>
-            <div className="mt-8"><Link to="/questions/class12"><Button size="lg" shine>Take the questionnaire<ArrowRight className="w-4 h-4" /></Button></Link></div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   const rawRecs = answers.recommendations || [];
   // Map to unified shape that RecommendationCard expects
   const unified = useMemo(() => rawRecs.map(rec => {
@@ -61,21 +46,25 @@ export default function PathResults() {
     };
   }), [rawRecs]);
 
-  const counts = { All: unified.length, 'Strong match': unified.filter(u=>u.level==='Strong match').length, 'Good match': unified.filter(u=>u.level==='Good match').length, 'Worth exploring': unified.filter(u=>u.level==='Worth exploring').length };
-  const visible = filter==='All' ? unified : unified.filter(u=>u.level===filter);
-  const header = { eyebrow:'Your career direction match', title:'Your Career Direction', subtitle:'Based on your stream, interests, strengths and priorities, here are the paths worth considering.' };
-  const context = [];
-  if (summary.stream?.label) context.push(`Stream: ${summary.stream.label}`);
-  if (Array.isArray(summary.subjectInterests) && summary.subjectInterests.length) context.push(`Subjects: ${summary.subjectInterests.join(' \u00b7 ')}`);
-  if (summary.specificInterest?.label) context.push(`Interest: ${summary.specificInterest.label}`);
-  if (summary.interestArea?.label) context.push(summary.interestArea.label);
-  if (summary.careerPriorities?.length) context.push(`Priority: ${summary.careerPriorities.join(' \u00b7 ')}`);
-  else if (summary.priority?.label) context.push(`Priority: ${summary.priority.label}`);
-  context.unshift('Stage: Student \u00b7 Class 12');
+  const counts = useMemo(() => ({ All: unified.length, 'Strong match': unified.filter(u=>u.level==='Strong match').length, 'Good match': unified.filter(u=>u.level==='Good match').length, 'Worth exploring': unified.filter(u=>u.level==='Worth exploring').length }), [unified]);
+  const visible = useMemo(() => filter==='All' ? unified : unified.filter(u=>u.level===filter), [unified, filter]);
+  const header = useMemo(() => ({ eyebrow:'Your career direction match', title:'Your Career Direction', subtitle:'Based on your stream, interests, strengths and priorities, here are the paths worth considering.' }), []);
+  const context = useMemo(() => {
+    if (!summary) return [];
+    const c = [];
+    if (summary.stream?.label) c.push(`Stream: ${summary.stream.label}`);
+    if (Array.isArray(summary.subjectInterests) && summary.subjectInterests.length) c.push(`Subjects: ${summary.subjectInterests.join(' \u00b7 ')}`);
+    if (summary.specificInterest?.label) c.push(`Interest: ${summary.specificInterest.label}`);
+    if (summary.interestArea?.label) c.push(summary.interestArea.label);
+    if (summary.careerPriorities?.length) c.push(`Priority: ${summary.careerPriorities.join(' \u00b7 ')}`);
+    else if (summary.priority?.label) c.push(`Priority: ${summary.priority.label}`);
+    c.unshift('Stage: Student \u00b7 Class 12');
+    return c;
+  }, [summary]);
 
   const exams = useMemo(()=>{ const seen=new Map(); unified.slice(0,3).forEach(u=> (u.exams||[]).forEach(e=>{ if(!seen.has(e.name)) seen.set(e.name,e);})); return [...seen.values()].slice(0,4); },[unified]);
   const primary = unified[0];
-  const steps = primary ? { month:[`Try: ${primary.activity}`, `Research ${primary.title} entry routes`, 'Check the entrance exams in the sidebar'], quarter:[`Start building ${primary.foundations[0]||'foundations'}`, 'Complete one small field-related project','Compare 2–3 colleges'], later:['Compare final degree options','Check eligibility & timelines','Revisit after trying one recommendation'] } : null;
+  const steps = useMemo(() => primary ? { month:[`Try: ${primary.activity}`, `Research ${primary.title} entry routes`, 'Check the entrance exams in the sidebar'], quarter:[`Start building ${primary.foundations[0]||'foundations'}`, 'Complete one small field-related project','Compare 2–3 colleges'], later:['Compare final degree options','Check eligibility & timelines','Revisit after trying one recommendation'] } : null, [primary]);
 
   useEffect(()=>{ if(!toast) return; const t=setTimeout(()=>setToast(''),2600); return()=>clearTimeout(t); },[toast]);
   const toggleCompare = (id)=> {
@@ -83,8 +72,23 @@ export default function PathResults() {
     if(compareIds.length>=3){ setToast('You can compare up to 3 options at a time.'); return; }
     setCompareIds([...compareIds, id]);
   };
-  const compareItems = compareIds.map(id=> unified.find(u=>u.career.id===id)).filter(Boolean);
-  const rows = [['Fit Score', r=> String(r.score)+' / 100'], ['Degree', r=> r.degree.short], ['Entrance exams', r=> r.exams.map(e=>e.name).join(' \u00b7 ')], ['Skills', r=> (r.career.skillsToDevelop||[]).slice(0,3).join(', ')], ['Why it matches', r=> (r.whyMatches[0]||'-')], ['Considerations', r=> (r.considerations[0]||'-')]];
+  const compareItems = useMemo(() => compareIds.map(id=> unified.find(u=>u.career.id===id)).filter(Boolean), [compareIds, unified]);
+  const rows = useMemo(() => [['Fit Score', r=> String(r.score)+' / 100'], ['Degree', r=> r.degree.short], ['Entrance exams', r=> r.exams.map(e=>e.name).join(' \u00b7 ')], ['Skills', r=> (r.career.skillsToDevelop||[]).slice(0,3).join(', ')], ['Why it matches', r=> (r.whyMatches[0]||'-')], ['Considerations', r=> (r.considerations[0]||'-')]], []);
+
+  if (!summary) {
+    return (
+      <div className="min-h-screen bg-paper-gradient">
+        <div className="max-w-2xl mx-auto px-5 sm:px-8 py-10 lg:py-14">
+          <div className="bg-white border border-line rounded-[1.6rem] shadow-card p-8 sm:p-10 text-center">
+            <span className="inline-flex w-14 h-14 rounded-2xl bg-brand-50 text-brand-600 items-center justify-center mb-6"><Compass className="w-7 h-7" strokeWidth={1.75} /></span>
+            <h1 className="font-ui font-bold text-3xl sm:text-4xl text-ink tracking-[-0.03em]">Your NAVORA Path</h1>
+            <p className="mt-3 text-ink-2 leading-relaxed">You haven&apos;t taken the career questionnaire yet.</p>
+            <div className="mt-8"><Link to="/questions/class12"><Button size="lg" shine>Take the questionnaire<ArrowRight className="w-4 h-4" /></Button></Link></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -104,7 +108,7 @@ export default function PathResults() {
         <RecommendationCard key={item.career.id} item={item} rank={unified.indexOf(item)} compared={compareIds.includes(item.career.id)} cantAdd={compareIds.length>=3} onToggleCompare={()=> toggleCompare(item.career.id)} open={openId===item.career.id} onToggleDetail={()=> setOpenId(openId===item.career.id? null: item.career.id)} onSave={()=> setToast('Saved \u2713')} />
       )}
       sidebarExams={exams}
-      sidebarNextColleges={<section className="rounded-[14px] p-5 text-white shadow-card" style={{background:'linear-gradient(135deg,#0f1f4d,#0a1638)'}}><h2 className="flex items-center gap-2 text-[0.72rem] font-bold uppercase text-white/70">Next: colleges</h2><p className="mt-2 text-sm text-white/85">Shortlist colleges for the recommended degree.</p><div className="mt-4"><Button size="md" className="bg-white text-ink hover:bg-brand-50 w-full" onClick={()=> navigate('/recommendations/graduate')}>View colleges</Button></div></section>}
+      sidebarNextColleges={<section className="rounded-[14px] p-5 text-white shadow-card" style={{background:'linear-gradient(135deg,#0f1f4d,#0a1638)'}}><h2 className="flex items-center gap-2 text-[0.72rem] font-bold uppercase text-white/70">Next: colleges</h2><p className="mt-2 text-sm text-white/85">Shortlist colleges for the recommended degree.</p><div className="mt-4"><Button size="md" className="w-full" onClick={()=> navigate('/recommendations/graduate')}>View colleges</Button></div></section>}
       nextSteps={steps}
       stepsChecked={stepsChecked}
       onToggleStep={(k)=> setStepsChecked(s=> ({...s, [k]: !s[k]}))}

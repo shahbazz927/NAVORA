@@ -114,10 +114,12 @@ export default function Parents() {
               </h1>
 
               <p className="mt-7 text-lg text-ink-2 leading-relaxed max-w-xl">
-                Fees, rankings, safety, future-proof careers — you&rsquo;re balancing a
-                lot. NAVORA lays the options out transparently, so you can guide your
-                child with confidence, not guesswork.
+                Your child doesn&rsquo;t need another list of careers. They need help
+                understanding which choices fit them — and why. NAVORA asks the right
+                questions first, then lays the options out transparently so you can
+                guide with confidence, not guesswork.
               </p>
+              <p className="mt-3 text-sm font-medium text-ink-3 italic">&ldquo;Good guidance begins by asking before advising.&rdquo;</p>
 
               <div className="mt-9 flex flex-col sm:flex-row items-start sm:items-center gap-3">
                 <Link to="/assessment" onClick={() => setUserType('parent')}>

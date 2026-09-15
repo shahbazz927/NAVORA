@@ -6,6 +6,7 @@ import { sendAdvisorChat, buildAdvicePayload } from '../lib/aiAdvisor';
 import { aiAdvisorResponses } from '../data/recommendations';
 import { getStudentContext } from '../data/streamConfig';
 import { useScrollTop } from '../hooks/useLocalStorage';
+import { fetchLatestResult } from '../lib/assessmentResults';
 import Logo from '../components/Logo';
 import BackLink from '../components/BackLink';
 
@@ -13,7 +14,33 @@ import BackLink from '../components/BackLink';
 // (see src/lib/aiAdvisor.js sendAdvisorChat) — no hardcoded/mock replies.
 export default function Advisor() {
   useScrollTop();
-  const { userType, answers, chatHistory, addChatMessage, setChatHistory } = useUser();
+  const { userType: localUserType, answers: localAnswers, chatHistory, addChatMessage, setChatHistory, user } = useUser();
+  const [remoteAnswers, setRemoteAnswers] = useState(null);
+  const [remoteUserType, setRemoteUserType] = useState(null);
+
+  // Load Supabase latest result as single source of truth (Dashboard → AI Advisor same context)
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const res = await fetchLatestResult();
+      if (cancelled) return;
+      if (res?.data?.assessment_data) {
+        const a = res.data.assessment_data;
+        setRemoteAnswers(a);
+        // Derive userType from stored flow if present
+        const flow = a.flow || res.data.assessment_type;
+        if (flow) {
+          if (String(flow).includes('graduation')) setRemoteUserType(flow.includes('parent') ? 'parent' : 'graduate');
+          else if (String(flow).includes('class12') || String(flow).includes('class10')) setRemoteUserType(flow.includes('parent') ? 'parent' : flow.includes('graduate') ? 'graduate' : String(flow).replace('student_','').replace('parent_',''));
+        }
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [user?.email]);
+
+  const userType = remoteUserType || localUserType;
+  const answers = remoteAnswers || localAnswers;
+
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef(null);
@@ -140,9 +167,9 @@ export default function Advisor() {
               <Logo size="sm" />
               <div>
                 <h1 className="font-ui font-semibold text-ink leading-tight">NAVORA advisor</h1>
-                <p className="text-xs text-success flex items-center gap-1.5">
+                <p className="text-xs text-ink-3 flex items-center gap-1.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 glow-dot" />
-                  AI-POWERED EDUCATION GUIDANCE
+                  PERSONALIZED EDUCATION &amp; CAREER GUIDANCE — supporting your assessment
                 </p>
               </div>
             </div>
@@ -160,6 +187,14 @@ export default function Advisor() {
               </button>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Supporting layer explainer */}
+      <div className="bg-brand-50/70 border-b border-brand-100">
+        <div className="max-w-3xl mx-auto px-5 sm:px-8 py-3.5">
+          <p className="text-sm font-medium text-brand-800 leading-relaxed">The conversation doesn&rsquo;t end with your assessment.</p>
+          <p className="text-xs text-ink-2 leading-relaxed">The advisor helps you understand your result, ask follow-up questions, compare options, and explore courses and career paths — grounded in your answers.</p>
         </div>
       </div>
 

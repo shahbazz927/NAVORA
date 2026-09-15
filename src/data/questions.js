@@ -18,6 +18,7 @@ export const questions = {
       id: 'interest',
       question: 'Which subjects do you enjoy the most?',
       type: 'multiple',
+      maxSelect: 3,
       options: [],
     },
     {

@@ -12,23 +12,15 @@ import { createClient } from '@supabase/supabase-js';
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-  throw new Error(
+export const isSupabaseConfigured = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
+
+if (!isSupabaseConfigured) {
+  console.error(
     'Supabase is not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to the .env file at the project root.'
   );
 }
 
-// TEMP DEBUG (lengths only — never the secret values).
-// Remove after diagnosing the "Failed to fetch" issue.
-console.log(
-  '[supabase] VITE_SUPABASE_URL length =',
-  String(SUPABASE_URL).length,
-  '| prefix =',
-  String(SUPABASE_URL).slice(0, 8)
+export const supabase = createClient(
+  SUPABASE_URL || 'https://placeholder.supabase.co',
+  SUPABASE_ANON_KEY || 'placeholder-anon-key'
 );
-console.log(
-  '[supabase] VITE_SUPABASE_ANON_KEY length =',
-  String(SUPABASE_ANON_KEY).length
-);
-
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);

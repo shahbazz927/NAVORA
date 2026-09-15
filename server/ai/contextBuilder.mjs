@@ -20,7 +20,30 @@ export const PROFILE_LABELS = {
   other_information: 'Other information',
 };
 
+const EXPLICIT_UNDECIDED = new Set([
+  'not_sure',
+  'still_exploring',
+  'still_figuring',
+  'exploring',
+  'not_sure_yet',
+  'help_me_explore',
+  'still_unsure',
+  'not_decided',
+  'not_sure_yet',
+  'other_subject',
+]);
+
+function normalizeUndecided(raw) {
+  if (raw == null) return null;
+  const k = String(raw).toLowerCase().trim().replace(/[\s-]+/g, '_');
+  if (EXPLICIT_UNDECIDED.has(k)) return 'Not sure / still exploring (user explicitly indicated undecided)';
+  if (k.includes('explor') || k === 'not_sure' || k === 'unsure' || k === 'explore') return 'Not sure / still exploring (user explicitly indicated undecided)';
+  return null;
+}
+
 function fmtAnswerValue(v) {
+  const undecided = normalizeUndecided(v);
+  if (undecided) return undecided;
   if (Array.isArray(v)) {
     const parts = v.map(fmtAnswerValue).filter(Boolean);
     return parts.length ? parts.join(', ') : '';
@@ -32,6 +55,29 @@ function fmtAnswerValue(v) {
   return String(v == null ? '' : String(v).trim());
 }
 
+function isMeaningfulValue(v) {
+  if (normalizeUndecided(v)) return true;
+  if (Array.isArray(v)) return v.filter(Boolean).length > 0;
+  if (v && typeof v === 'object') return Object.keys(v).length > 0;
+  return Boolean(String(v == null ? '' : String(v).trim()));
+}
+
+function formatProfileValue(value) {
+  if (Array.isArray(value)) {
+    return value
+      .filter(Boolean)
+      .map((x) => {
+        const n = normalizeUndecided(x);
+        return n || String(x).trim();
+      })
+      .join('; ');
+  }
+  if (value && typeof value === 'object') return JSON.stringify(value);
+  const n = normalizeUndecided(value);
+  if (n) return n;
+  return String(value == null ? '' : String(value).trim());
+}
+
 /**
  * Build the structured user prompt for /api/career-advice (grounded advice).
  * Uses resolvedProfile, summary, answers, and engine recommendations.
@@ -41,20 +87,13 @@ export function buildAdviceUserPrompt(body) {
   if (body?.userType) lines.push(`Student type: ${body.userType}`);
 
   const profile = body?.resolvedProfile && typeof body.resolvedProfile === 'object' ? body.resolvedProfile : {};
-  const profileEntries = Object.entries(profile).filter(([, v]) => {
-    if (Array.isArray(v)) return v.filter(Boolean).length > 0;
-    return Boolean(v);
-  });
+  const profileEntries = Object.entries(profile).filter(([, v]) => isMeaningfulValue(v));
   if (profileEntries.length) {
     lines.push('');
     lines.push('STRUCTURED STUDENT PROFILE:');
     for (const [key, value] of profileEntries) {
       const label = PROFILE_LABELS[key] || key;
-      const val = Array.isArray(value)
-        ? value.filter(Boolean).map((x) => String(x).trim()).join('; ')
-        : value && typeof value === 'object'
-          ? JSON.stringify(value)
-          : String(value == null ? '' : String(value).trim());
+      const val = formatProfileValue(value);
       if (val) lines.push(`- ${label}: ${val}`);
     }
   }
@@ -132,23 +171,17 @@ export function serializeChatContext(body) {
   }
   if (body?.context?.resolvedProfile) {
     const rp = body.context.resolvedProfile;
-    const entries = Object.entries(rp).filter(([, v]) => {
-      if (Array.isArray(v)) return v.filter(Boolean).length > 0;
-      return Boolean(v);
-    });
+    const entries = Object.entries(rp).filter(([, v]) => isMeaningfulValue(v));
     if (entries.length) {
-      bits.push('profile=' + entries.map(([k, v]) => `${k}:${Array.isArray(v) ? v.join(',') : v}`).join(' | '));
+      bits.push('profile=' + entries.map(([k, v]) => `${k}:${Array.isArray(v) ? v.map((x) => normalizeUndecided(x) || x).join(',') : (normalizeUndecided(v) || v)}`).join(' | '));
     }
   }
   // Also support top-level resolvedProfile (some callers send it there)
   if (body?.resolvedProfile && !body?.context?.resolvedProfile) {
     const rp = body.resolvedProfile;
-    const entries = Object.entries(rp).filter(([, v]) => {
-      if (Array.isArray(v)) return v.filter(Boolean).length > 0;
-      return Boolean(v);
-    });
+    const entries = Object.entries(rp).filter(([, v]) => isMeaningfulValue(v));
     if (entries.length) {
-      bits.push('profile=' + entries.map(([k, v]) => `${k}:${Array.isArray(v) ? v.join(',') : v}`).join(' | '));
+      bits.push('profile=' + entries.map(([k, v]) => `${k}:${Array.isArray(v) ? v.map((x) => normalizeUndecided(x) || x).join(',') : (normalizeUndecided(v) || v)}`).join(' | '));
     }
   }
   return bits.join(' | ') || 'new student (no questionnaire yet)';

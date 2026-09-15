@@ -103,17 +103,22 @@ export const CLASS12_STREAM_HEADING = 'First, what did you study in Class 11 and
 export const CLASS12_STREAMS = [
   { value: 'mpc', label: 'MPC' },
   { value: 'bipc', label: 'BiPC' },
-  { value: 'commerce', label: 'Commerce' },
-  { value: 'arts', label: 'Arts / Humanities' },
-  { value: 'other', label: 'Other' },
-  { value: 'not_sure', label: 'Not sure / Exploring' },
+  { value: 'mec', label: 'MEC' },
+  { value: 'cec', label: 'CEC' },
+  { value: 'not_sure', label: 'Not Sure / Exploring' },
 ];
 
-// Resolve either a stored stream id ('mpc') or a legacy label ('MPC').
+// Backward-compat: commerce→mec, arts→cec, other→not_sure
+const LEGACY_STREAM_MAP = { commerce: 'mec', arts: 'cec', other: 'not_sure', science_pcm: 'mpc', science_pcb: 'bipc' };
 export function resolveStreamId(raw) {
   if (!raw) return '';
-  if (CLASS12_STREAMS.some((s) => s.value === raw)) return raw;
-  return (CLASS12_STREAMS.find((s) => s.label === raw) || {}).value || '';
+  const norm = String(raw).toLowerCase().trim();
+  if (LEGACY_STREAM_MAP[norm]) return LEGACY_STREAM_MAP[norm];
+  if (CLASS12_STREAMS.some((s) => s.value === norm)) return norm;
+  // also match by label (MPC etc)
+  const byLabel = CLASS12_STREAMS.find((s) => s.label.toLowerCase() === norm);
+  if (byLabel) return byLabel.value;
+  return '';
 }
 
 export const CLASS12_SUBJECTS_HEADING = 'Which subjects did you study or enjoy the most?';
@@ -123,8 +128,11 @@ export const PARENT_CLASS12_SUBJECTS_HEADING = 'Which subjects did your child st
 export const CLASS12_SUBJECTS = {
   mpc: ['Mathematics', 'Physics', 'Chemistry', 'Computer Science', 'Other'],
   bipc: ['Biology', 'Physics', 'Chemistry', 'Other'],
-  commerce: ['Accountancy', 'Economics', 'Business Studies', 'Mathematics', 'Other'],
-  arts: ['History', 'Political Science', 'Economics', 'Psychology', 'Sociology', 'Languages / Literature', 'Other'],
+  mec: ['Mathematics', 'Economics', 'Commerce / Business Studies', 'Accountancy', 'Other'],
+  cec: ['Civics / Political Science', 'Economics', 'Commerce / Business Studies', 'History', 'Other'],
+  // legacy aliases kept for backward compat
+  commerce: ['Mathematics', 'Economics', 'Commerce / Business Studies', 'Accountancy', 'Other'],
+  arts: ['Civics / Political Science', 'Economics', 'Commerce / Business Studies', 'History', 'Other'],
   other: ['Mathematics', 'Physics', 'Chemistry', 'Biology', 'Commerce / Business', 'Humanities', 'Computers', 'Other'],
   not_sure: ['Mathematics', 'Physics', 'Chemistry', 'Biology', 'Commerce / Business', 'Humanities', 'Computers', 'Other'],
 };
@@ -134,8 +142,13 @@ export const CLASS12_THINK_HEADING = 'Now that Class 12 is complete, what are yo
 export const CLASS12_STREAM_DIRECTIONS = {
   mpc: ['Engineering', 'Computer Science', 'Artificial Intelligence / Data Science', 'Architecture', 'Pure Sciences', 'Mathematics / Statistics', 'Economics', 'Defence', 'Other', 'Still exploring'],
   bipc: ['Medicine', 'Dentistry', 'Pharmacy', 'Nursing', 'Physiotherapy', 'Biotechnology', 'Life Sciences', 'Agriculture', 'Allied Healthcare', 'Other', 'Still exploring'],
-  commerce: ['Commerce & Finance', 'Accounting', 'Banking', 'Investment', 'Business Management', 'Economics', 'Business Analytics', 'Professional Finance', 'Entrepreneurship', 'Other', 'Still exploring'],
-  arts: ['Psychology', 'Law', 'Journalism / Media', 'Economics', 'Social Sciences', 'Languages', 'Design', 'Public Administration', 'Teaching / Education', 'Other', 'Still exploring'],
+  mec: ['CA / Accounting', 'Finance', 'Economics', 'Banking', 'Business & Management', 'Investment & Financial Markets', 'Business Analytics', 'Actuarial / Data', 'Entrepreneurship', 'Other', 'Still exploring'],
+  cec: ['Law', 'Government / Civil Services', 'Business & Management', 'Economics', 'Media & Communication', 'Social Sciences', 'Public Policy', 'Psychology', 'Other', 'Still exploring'],
+  // legacy
+  commerce: ['CA / Accounting', 'Finance', 'Economics', 'Banking', 'Business & Management', 'Investment & Financial Markets', 'Business Analytics', 'Actuarial / Data', 'Entrepreneurship', 'Other', 'Still exploring'],
+  arts: ['Law', 'Government / Civil Services', 'Business & Management', 'Economics', 'Media & Communication', 'Social Sciences', 'Public Policy', 'Psychology', 'Other', 'Still exploring'],
+  other: ['Technology', 'Healthcare', 'Business Management', 'Design', 'Education', 'Agriculture', 'Other', 'Still exploring'],
+  not_sure: ['Technology', 'Medicine or healthcare', 'Business', 'Science or research', 'Design', 'Media or communication', 'Law or public service', 'Building or creating things', 'Agriculture or environment', 'Other', 'Still exploring'],
 };
 
 export const CLASS12_WORK_HEADING = 'What kind of work do you think you would enjoy in the long run?';
@@ -152,13 +165,24 @@ export const CLASS12_WORK_AREAS = {
     'Psychology & Human Behaviour', 'Agriculture & Life Sciences', 'Nutrition & Food Science',
     'Allied Healthcare', 'Exploring',
   ],
+  mec: [
+    'Finance & Investment', 'Accounting & Audit', 'Business Management & Analytics',
+    'Banking', 'Economics & Policy', 'Investment & Markets', 'Entrepreneurship', 'Exploring',
+  ],
+  cec: [
+    'Law & Legal Services', 'Government & Civil Services', 'Business & Management',
+    'Economics & Policy', 'Media & Communication', 'Social Sciences & Public Policy',
+    'Psychology & Human Behaviour', 'Exploring',
+  ],
+  // legacy
   commerce: [
-    'Finance & Investment', 'Accounting', 'Business Management', 'Economics',
-    'Marketing', 'Banking', 'Entrepreneurship', 'Exploring',
+    'Finance & Investment', 'Accounting & Audit', 'Business Management & Analytics',
+    'Banking', 'Economics & Policy', 'Investment & Markets', 'Entrepreneurship', 'Exploring',
   ],
   arts: [
-    'Psychology', 'Law', 'Economics', 'Journalism & Media', 'Political Science / Public Policy',
-    'Sociology', 'Languages & Literature', 'Design & Creative Fields', 'Education', 'Exploring',
+    'Law & Legal Services', 'Government & Civil Services', 'Business & Management',
+    'Economics & Policy', 'Media & Communication', 'Social Sciences & Public Policy',
+    'Psychology & Human Behaviour', 'Exploring',
   ],
   other: [
     'Technology', 'Healthcare', 'Business & Finance', 'Government / Public Service',
@@ -210,6 +234,28 @@ const CLASS12_ATTRACT_BY_STREAM = {
     'Professional Finance': ['Financial analysis', 'Corporate finance', 'Certifications like CA / CFA', 'Wealth management', 'Precision & rigour', 'Still figuring it out'],
     Entrepreneurship: ['Building something of my own', 'New ideas', 'Taking initiative', 'Solving real problems', 'Independence', 'Still figuring it out'],
   },
+  // MEC uses commerce logic but with maths emphasis; CEC uses arts/humanities logic
+  mec: {
+    'CA / Accounting': ['Numbers & accuracy', 'Auditing & compliance', 'Financial records', 'Taxation', 'Structured, precise work', 'Still figuring it out'],
+    Finance: ['Investing & markets', 'Stock analysis', 'Portfolio building', 'Risk & returns', 'Financial research', 'Still figuring it out'],
+    Economics: ['Understanding markets & policy', 'Data & trends', 'Solving economic problems', 'Research', 'Global affairs', 'Still figuring it out'],
+    Banking: ['Financial services', 'Customer relationships', 'Loans & credit', 'A stable career', 'Understanding money flows', 'Still figuring it out'],
+    'Business & Management': ['Leading teams', 'Strategy & planning', 'Organising operations', 'Business growth', 'Entrepreneurial thinking', 'Still figuring it out'],
+    'Investment & Financial Markets': ['Investing & markets', 'Stock analysis', 'Portfolio building', 'Risk & returns', 'Financial research', 'Still figuring it out'],
+    'Business Analytics': ['Working with data', 'Business insights', 'Dashboards & tools', 'Better decision-making', 'Problem solving', 'Still figuring it out'],
+    'Actuarial / Data': ['Solving abstract problems', 'Patterns & logic', 'Data & probability', 'Quantitative modelling', 'Research', 'Still figuring it out'],
+    Entrepreneurship: ['Building something of my own', 'New ideas', 'Taking initiative', 'Solving real problems', 'Independence', 'Still figuring it out'],
+  },
+  cec: {
+    Law: ['Arguing & reasoning', 'Justice & fairness', 'Courtrooms & cases', 'Constitution & rights', 'Corporate law', 'Still figuring it out'],
+    'Government / Civil Services': ['Governance & policy', 'Serving the public', 'Civil services', 'Administration', 'Social impact', 'Still figuring it out'],
+    'Business & Management': ['Leading teams', 'Strategy & planning', 'Organising operations', 'Business growth', 'Entrepreneurial thinking', 'Still figuring it out'],
+    Economics: ['Markets & policy', 'Data & analysis', 'Global issues', 'Research', 'Financial reasoning', 'Still figuring it out'],
+    'Media & Communication': ['Storytelling', 'Current affairs', 'Writing & reporting', 'Digital media', 'Public speaking', 'Still figuring it out'],
+    'Social Sciences': ['Understanding society', 'People & cultures', 'Research', 'Social change', 'Public issues', 'Still figuring it out'],
+    'Public Policy': ['Governance & policy', 'Serving the public', 'Civil services', 'Administration', 'Social impact', 'Still figuring it out'],
+    Psychology: ['Understanding human behaviour', 'Helping people', 'Counselling', 'Research on the mind', 'Mental health', 'Still figuring it out'],
+  },
   arts: {
     Psychology: ['Understanding human behaviour', 'Helping people', 'Counselling', 'Research on the mind', 'Mental health', 'Still figuring it out'],
     Law: ['Arguing & reasoning', 'Justice & fairness', 'Courtrooms & cases', 'Constitution & rights', 'Corporate law', 'Still figuring it out'],
@@ -226,6 +272,8 @@ const CLASS12_ATTRACT_BY_STREAM = {
 const CLASS12_ATTRACT_GENERIC = {
   mpc: ['Solving interesting problems', 'Building & creating things', 'Working with technology', 'Research & discovery', 'Understanding how things work', 'Still figuring it out'],
   bipc: ['Understanding living things', 'Helping people stay healthy', 'Lab & research work', 'Scientific discovery', 'Working with people', 'Still figuring it out'],
+  mec: ['Understanding business', 'Working with numbers', 'Markets & money', 'Leading & organising', 'Building a career in finance', 'Still figuring it out'],
+  cec: ['Understanding people & society', 'Writing & communication', 'Creative expression', 'Research & ideas', 'Making a social impact', 'Still figuring it out'],
   commerce: ['Understanding business', 'Working with numbers', 'Markets & money', 'Leading & organising', 'Building a career in finance', 'Still figuring it out'],
   arts: ['Understanding people & society', 'Writing & communication', 'Creative expression', 'Research & ideas', 'Making a social impact', 'Still figuring it out'],
   other: ['Solving problems', 'Working with people', 'Creative work', 'Practical, hands-on work', 'Learning new things', 'Still figuring it out'],
@@ -238,6 +286,28 @@ export function attractOptionsFor(streamId, interest) {
 }
 
 export const CLASS12_SKILLS_HEADING = 'What are you already good at?';
+
+const MEC_SKILLS = {
+  'CA / Accounting': ['Numbers & accuracy', 'Accounting basics', 'Attention to detail', 'Excel & data handling', 'Discipline & routine', 'Analysis'],
+  Finance: ['Analysis', 'Numbers & accuracy', 'Current affairs / market awareness', 'Mathematics', 'Research & reading', 'Decision making'],
+  Economics: ['Analytical thinking', 'Writing & expression', 'Current affairs awareness', 'Data interpretation', 'Mathematics', 'Communication'],
+  Banking: ['Communication', 'Numbers & accounting basics', 'Business Thinking', 'Trust & reliability', 'Current affairs awareness', 'Analysis'],
+  'Business & Management': ['Leadership', 'Communication', 'Organisation & planning', 'Teamwork', 'Business Thinking', 'Problem Solving'],
+  'Investment & Financial Markets': ['Analysis', 'Mathematics', 'Current affairs / market awareness', 'Research & reading', 'Decision making', 'Numbers & accuracy'],
+  'Business Analytics': ['Excel & data handling', 'Analytical thinking', 'Mathematics', 'Computers & Tools', 'Problem Solving', 'Attention to detail'],
+  'Actuarial / Data': ['Mathematics', 'Statistics & Probability', 'Analytical thinking', 'Problem Solving', 'Attention to detail', 'Computers & Tools'],
+  Entrepreneurship: ['Creativity', 'Leadership', 'Communication', 'Risk taking & initiative', 'Problem Solving', 'Business Thinking'],
+};
+const CEC_SKILLS = {
+  Law: ['Reading & comprehension', 'Argumentation & reasoning', 'Writing', 'Memory & recall', 'Confidence & speaking', 'Analysis'],
+  'Government / Civil Services': ['Reading & comprehension', 'Writing', 'Current affairs awareness', 'Leadership', 'Organisation & planning', 'Communication'],
+  'Business & Management': ['Leadership', 'Communication', 'Organisation & planning', 'Teamwork', 'Business Thinking', 'Problem Solving'],
+  Economics: ['Analytical thinking', 'Data interpretation', 'Writing & expression', 'Current affairs awareness', 'Mathematics', 'Communication'],
+  'Media & Communication': ['Writing', 'Communication', 'Storytelling', 'Current affairs awareness', 'Creativity', 'Research & interviewing'],
+  'Social Sciences': ['Understanding people & society', 'Reading & comprehension', 'Research & writing', 'Empathy & listening', 'Analysis', 'Communication'],
+  'Public Policy': ['Reading & comprehension', 'Writing', 'Current affairs awareness', 'Leadership', 'Organisation & planning', 'Communication'],
+  Psychology: ['Empathy & listening', 'Understanding people', 'Communication', 'Observation', 'Writing', 'Patience'],
+};
 
 // Skills depend on the stream + chosen direction — only relevant strengths
 // are shown. Falls back to stream-level and then the generic list.
@@ -285,14 +355,20 @@ const CLASS12_SKILLS_BY_STREAM = {
     'Public Administration': ['Reading & comprehension', 'Writing', 'Current affairs awareness', 'Leadership', 'Organisation & planning', 'Communication'],
     'Teaching / Education': ['Communication', 'Patience', 'Explanation & clarity', 'Empathy & listening', 'Organisation & planning', 'Leadership'],
   },
+  mec: MEC_SKILLS,
+  cec: CEC_SKILLS,
 };
 
 const CLASS12_SKILLS_GENERIC = {
   mpc: ['Problem Solving', 'Mathematics', 'Physics', 'Chemistry', 'Computers', 'Communication'],
   bipc: ['Biology', 'Chemistry', 'Scientific Thinking', 'Empathy & care', 'Communication', 'Practical Work'],
+  mec: ['Business Thinking', 'Numbers & accuracy', 'Mathematics', 'Analysis', 'Excel & data handling', 'Communication'],
+  cec: ['Writing', 'Reading & comprehension', 'Communication', 'Analysis', 'Understanding people & society', 'Leadership'],
   commerce: ['Business Thinking', 'Communication', 'Numbers & accounting basics', 'Analysis', 'Leadership', 'Excel & data handling'],
   arts: ['Writing', 'Communication', 'Creativity', 'Understanding people & society', 'Analysis', 'Leadership'],
 };
+
+// (detailed MEC/CEC skills defined above — see MEC_SKILLS / CEC_SKILLS)
 
 export function skillsFor(streamId, interest) {
   const byInterest = CLASS12_SKILLS_BY_STREAM[streamId] || {};
@@ -313,12 +389,16 @@ export const PARENT_CLASS12_CLARITY_HEADING = 'How clear is the decision right n
 export const PARENT_CLASS12_CLARITY = ["We've already decided", 'We have two or three options', 'We know the field but not the degree', "We're completely confused"];
 
 // ── Parent Class 10 (parent wording; ONLY inside parent) ─────
+// Education decision point — recommends NEXT EDUCATION PATH after Class 10, NOT a career/job.
 export const PARENT_CLASS10_HEADINGS = {
-  enjoy: 'Tell us a little about your child. What do they naturally enjoy?',
-  strongest: 'Where do you feel they are strongest at school?',
-  future: 'When you imagine their future, what kind of work do you think they might enjoy?',
-  clarity: 'How clear is your child about what they want?',
-  priority: 'What matters most to you when choosing their direction?',
+  enjoy: 'What subjects does your child enjoy most?',
+  strongest: 'Which subjects does your child generally feel most comfortable learning?',
+  learningStyle: 'How does your child prefer to learn?',
+  interests: 'Which areas naturally attract your child’s attention?',
+  direction: 'Does your child already have an idea about what they want to study after Class 10?',
+  directionDetail: 'What are they currently considering?',
+  pathway: 'Which type of path would suit your child better right now?',
+  priority: 'What matters most when choosing the next step?',
 };
 
 // ── Result builders ──────────────────────────────────────────
@@ -408,6 +488,24 @@ const CLASS12_WORK_TO_INTEREST = {
     Banking: 'Banking',
     Entrepreneurship: 'Entrepreneurship',
   },
+  mec: {
+    'Finance & Investment': 'Finance',
+    'Accounting & Audit': 'CA / Accounting',
+    'Business Management & Analytics': 'Business & Management',
+    Banking: 'Banking',
+    'Economics & Policy': 'Economics',
+    'Investment & Markets': 'Investment & Financial Markets',
+    Entrepreneurship: 'Entrepreneurship',
+  },
+  cec: {
+    'Law & Legal Services': 'Law',
+    'Government & Civil Services': 'Government / Civil Services',
+    'Business & Management': 'Business & Management',
+    'Economics & Policy': 'Economics',
+    'Media & Communication': 'Media & Communication',
+    'Social Sciences & Public Policy': 'Social Sciences',
+    'Psychology & Human Behaviour': 'Psychology',
+  },
   arts: {
     Psychology: 'Psychology',
     Law: 'Law',
@@ -480,6 +578,47 @@ const CLASS12_REC = {
     exams: ['CUET', 'CA Foundation', 'IPMAT', 'NPAT'],
     skills: ['Accounting basics', 'Excel & data analysis', 'Business communication'],
   },
+  mec: {
+    base: {
+      degree: 'B.Com (Hons) / BBA — MEC pathway',
+      why: ['MEC combines mathematics with commerce — ideal for quantitative finance, analytics and economics.', 'Your priorities align with a path that rewards accuracy and analytical thinking.'],
+      alternatives: ['B.Com + CA / CMA', 'BBA Business Analytics', 'BA Economics / B.Sc Statistics'],
+      careers: ['Chartered Accountant', 'Financial Analyst', 'Business Analyst', 'Actuary'],
+    },
+    interestDegree: {
+      'CA / Accounting': { degree: 'B.Com + CA / CMA', careers: ['Chartered Accountant', 'Auditor'] },
+      Finance: { degree: 'B.Com (Finance) / BBA Finance', careers: ['Financial Analyst', 'Investment Banker'] },
+      Economics: { degree: 'BA Economics / B.Sc Statistics', careers: ['Economist', 'Data Analyst'] },
+      Banking: { degree: 'B.Com (Banking & Finance)', careers: ['Bank Officer', 'Relationship Manager'] },
+      'Business & Management': { degree: 'BBA + MBA', careers: ['Business Manager', 'Consultant'] },
+      'Investment & Financial Markets': { degree: 'B.Com Finance / CFA path', careers: ['Investment Analyst', 'Portfolio Manager'] },
+      'Business Analytics': { degree: 'BBA Business Analytics / B.Sc Data', careers: ['Business Analyst', 'Data Analyst'] },
+      'Actuarial / Data': { degree: 'B.Sc Actuarial / Statistics', careers: ['Actuary', 'Data Scientist'] },
+      Entrepreneurship: { degree: 'BBA Entrepreneurship', careers: ['Entrepreneur', 'Startup Founder'] },
+    },
+    exams: ['CUET', 'CA Foundation', 'IPMAT', 'NPAT'],
+    skills: ['Accounting basics', 'Mathematics & analytics', 'Excel & data handling'],
+  },
+  cec: {
+    base: {
+      degree: 'BA / BBA — CEC pathway',
+      why: ['CEC blends civics and commerce — strong for law, governance, business and the social sciences.', 'Your interests point toward people, systems and ideas.'],
+      alternatives: ['BA LLB (Law)', 'BBA (Management)', 'BA Political Science / Economics'],
+      careers: ['Lawyer', 'Civil Servant', 'Business Manager', 'Policy Analyst'],
+    },
+    interestDegree: {
+      Law: { degree: 'BA LLB / Bachelor of Law', careers: ['Lawyer', 'Corporate Counsel'] },
+      'Government / Civil Services': { degree: 'BA Public Administration / Civil Services prep', careers: ['Civil Servant', 'Administrator'] },
+      'Business & Management': { degree: 'BBA + MBA', careers: ['Business Manager', 'Consultant'] },
+      Economics: { degree: 'BA Economics', careers: ['Economist', 'Policy Analyst'] },
+      'Media & Communication': { degree: 'BA Journalism / Mass Communication', careers: ['Journalist', 'Content Strategist'] },
+      'Social Sciences': { degree: 'BA Social Sciences', careers: ['Social Worker', 'Researcher'] },
+      'Public Policy': { degree: 'BA Public Policy / Political Science', careers: ['Policy Analyst', 'Civil Servant'] },
+      Psychology: { degree: 'BA Psychology', careers: ['Psychologist', 'Counsellor'] },
+    },
+    exams: ['CUET', 'CLAT', 'IPMAT'],
+    skills: ['Reading & comprehension', 'Writing & reasoning', 'Critical thinking'],
+  },
   arts: {
     base: {
       degree: 'BA (your chosen discipline)',
@@ -503,11 +642,34 @@ const CLASS12_REC = {
 };
 
 export function buildClass12Result(answers, isParent = false) {
+  // Dedicated Not Sure discovery — don't force a stream
+  const sidRaw = resolveStreamId(answers.stream || '');
+  if (sidRaw === 'not_sure') {
+    const priority = answers.priority || '';
+    const work = answers.work || '';
+    const interest = answers.interest || '';
+    const subject = isParent ? 'your child' : 'you';
+    const picks = [interest, work, priority].filter(Boolean).join(', ');
+    return {
+      headline: 'Exploring directions',
+      degrees: ['B.Com / BBA', 'BA — choose by interest', 'B.Sc / Professional course — explore fit'],
+      why: [
+        `Since you are still exploring, we looked at what you enjoy and what matters to you${picks ? ` (${picks.toLowerCase()})` : ''} rather than assuming a stream.`,
+        'Good guidance starts by understanding you — these directions are starting points to test, not a final verdict.',
+      ],
+      alternatives: ['Try a short project or shadowing in one of these areas', 'Compare 2–3 options on effort, cost and growth'],
+      careers: ['Explore broadly — then narrow with the advisor'],
+      exams: ['CUET', 'Stream-specific entrances — shortlist after you narrow'],
+      skills: ['Curiosity', 'Communication', 'Analytical thinking'],
+      next: `Based on your answers, these are areas worth exploring. Try a small, real-world exposure in one direction and revisit — ${subject} can refine this together with the advisor.`,
+    };
+  }
   // Accept either stored ids ('mpc') or legacy label values ('MPC').
   const streamIdByLabel = {};
   (CLASS12_STREAMS || []).forEach((s) => { streamIdByLabel[s.label] = s.value; });
   const raw = answers.stream || '';
-  const stream = CLASS12_REC[raw] ? raw : streamIdByLabel[raw] || 'other';
+  const rawNorm = resolveStreamId(raw) || raw;
+  const stream = CLASS12_REC[rawNorm] ? rawNorm : (streamIdByLabel[raw] ? resolveStreamId(streamIdByLabel[raw]) : 'other');
   const rec = CLASS12_REC[stream];
   const subject = isParent ? 'your child' : 'you';
   const their = isParent ? 'their' : 'your';
@@ -576,68 +738,166 @@ export function buildClass12Result(answers, isParent = false) {
   };
 }
 
+/**
+ * Class 10 Parent — EDUCATION DIRECTION engine.
+ * Recommends NEXT EDUCATION PATH after Class 10 (stream / pathway), NOT a final career/job.
+ * Stage-aware: recommendationType = NEXT_EDUCATION_PATH
+ */
 export function buildParentClass10Result(answers) {
-  const asString = (v) => (Array.isArray(v) ? v[0] || '' : typeof v === 'string' ? v : '');
   const asList = (v) => (Array.isArray(v) ? v : v ? [v] : []);
+  const asString = (v) => (Array.isArray(v) ? v[0] || '' : typeof v === 'string' ? v : '');
   const enjoy = asList(answers.enjoy);
   const strongest = asList(answers.strongest);
-  const future = asString(answers.future);
+  const learningStyle = asString(answers.learningStyle);
+  const interests = asList(answers.interests);
+  const direction = asString(answers.direction);
+  const directionDetail = asString(answers.directionDetail);
+  const pathway = asString(answers.pathway);
   const priority = asString(answers.priority);
-  const streamNames = { mpc: 'MPC', bipc: 'BiPC', commerce: 'Commerce', arts: 'Arts / Humanities' };
-  const score = { mpc: 0, bipc: 0, commerce: 0, arts: 0 };
 
+  const score = { mpc: 0, bipc: 0, mec: 0, cec: 0, humanities: 0, diploma: 0, vocational: 0 };
+  let uncertainSignals = 0;
+
+  // Q1 enjoy — evidence, not auto-career
   enjoy.forEach((e) => {
-    if (e === 'Solving maths problems' || e === 'Understanding science' || e === 'Computers & technology') score.mpc += 1;
-    if (e === 'Biology & healthcare' || e === 'Understanding science') score.bipc += 1;
-    if (e === 'Business & money' || e === 'Understanding people & society') score.commerce += 1;
-    if (e === 'Reading & writing' || e === 'Design & creativity' || e === 'Understanding people & society') score.arts += 1;
+    if (e === 'Mathematics') { score.mpc += 1; score.mec += 1; }
+    if (e === 'Physics / Physical Science') { score.mpc += 1; }
+    if (e === 'Biology / Life Science') { score.bipc += 1; }
+    if (e === 'Social Studies') { score.cec += 1; score.humanities += 1; }
+    if (e === 'Languages') { score.humanities += 1; score.cec += 0.5; }
+    if (e === 'Computers / Technology') { score.mpc += 1; score.diploma += 0.5; }
+    if (e === 'Commerce / Business') { score.mec += 1; score.cec += 1; }
+    if (e === 'Creative subjects') { score.humanities += 1; score.vocational += 0.5; }
+    if (e === "They're still figuring it out" || e === 'Other') uncertainSignals += 1;
   });
-
-  // Subjects they are strong in corroborate the interest signals above.
+  // Q2 strongest — academic comfort
   strongest.forEach((s) => {
-    if (s === 'Mathematics' || s === 'Computer Science') score.mpc += 1;
-    if (s === 'Physics') { score.mpc += 1; score.bipc += 1; }
-    if (s === 'Chemistry') { score.mpc += 0.5; score.bipc += 1; }
-    if (s === 'Biology') score.bipc += 1;
-    if (s === 'Social Studies' || s === 'Languages') score.arts += 1;
-    if (s === 'Commerce / Business') score.commerce += 1;
+    if (s === 'Mathematics / problem solving') { score.mpc += 1; score.mec += 0.5; }
+    if (s === 'Science / experiments') { score.bipc += 1; score.mpc += 0.5; }
+    if (s === 'Biology / living systems') { score.bipc += 1; }
+    if (s === 'Business / money / economics') { score.mec += 1; score.cec += 0.5; }
+    if (s === 'Social sciences / current affairs') { score.cec += 1; score.humanities += 0.5; }
+    if (s === 'Languages / communication') { score.humanities += 1; }
+    if (s === 'Computers / technology') { score.mpc += 0.7; score.diploma += 0.5; }
+    if (s === 'Creative / practical work') { score.vocational += 0.8; score.humanities += 0.5; score.diploma += 0.5; }
+    if (s === 'Still unsure') uncertainSignals += 1;
+  });
+  // Q3 learning style — critical for academic vs practical
+  if (learningStyle === 'Understanding concepts and solving problems') { score.mpc += 1; score.mec += 0.5; }
+  if (learningStyle === 'Experiments and scientific learning') { score.bipc += 1; }
+  if (learningStyle === 'Reading, discussion and explanation') { score.humanities += 1; score.cec += 0.7; }
+  if (learningStyle === 'Practical / hands-on work') { score.diploma += 1; score.vocational += 1; }
+  if (learningStyle === 'Building or working with technology') { score.mpc += 0.7; score.diploma += 1; }
+  if (learningStyle === 'Business / real-world applications') { score.mec += 1; score.cec += 0.7; }
+  if (learningStyle === 'A mix / not sure') uncertainSignals += 1;
+
+  // Q4 interests — up to 3, NOT jobs
+  interests.forEach((it) => {
+    if (it === 'Technology') { score.mpc += 1; }
+    if (it === 'Science') { score.mpc += 0.5; score.bipc += 0.5; }
+    if (it === 'Healthcare') { score.bipc += 1; }
+    if (it === 'Business') { score.mec += 0.7; score.cec += 0.5; }
+    if (it === 'Finance') { score.mec += 1; }
+    if (it === 'Law / social issues') { score.cec += 1; score.humanities += 0.5; }
+    if (it === 'Design / creative work') { score.humanities += 1; }
+    if (it === 'Government / public service') { score.cec += 0.7; score.humanities += 0.5; }
+    if (it === 'Practical / technical work') { score.diploma += 1; score.vocational += 0.8; }
+    if (it === 'Not sure') uncertainSignals += 1;
   });
 
-  const futureMap = {
-    Technology: 'mpc', 'Medicine or healthcare': 'bipc', Business: 'commerce', 'Science or research': 'mpc',
-    Design: 'arts', 'Media or communication': 'arts', 'Law or public service': 'arts',
-    'Building or creating things': 'mpc', 'Agriculture or environment': 'bipc',
-  };
-  if (futureMap[future]) score[futureMap[future]] += 2;
+  // Q5 direction — clarity, not forced career
+  if (direction === 'Completely unsure') uncertainSignals += 1;
+  // follow-up detail boosts that path modestly (but not overriding evidence)
+  if (directionDetail) {
+    const detailMap = {
+      'MPC': 'mpc', 'BiPC': 'bipc', 'MEC': 'mec', 'CEC': 'cec',
+      'Humanities': 'humanities', 'Diploma / Polytechnic': 'diploma', 'Vocational / Skill-based': 'vocational',
+    };
+    const k = detailMap[directionDetail];
+    if (k) score[k] += 1.2;
+  }
+
+  // Q6 pathway — explicit academic vs practical preference
+  if (pathway === 'Traditional academic route → Intermediate / 11th–12th → degree') {
+    // slight nudge to academic streams, penalize vocational if no other signal
+    if (score.vocational > 0) score.vocational -= 0.3;
+    if (score.diploma > 0) score.diploma -= 0.3;
+  }
+  if (pathway === 'Practical / technical learning') { score.diploma += 1; score.vocational += 0.7; }
+  if (pathway === 'Diploma / Polytechnic') { score.diploma += 2; }
+  if (pathway === 'Vocational / skill-based route') { score.vocational += 2; }
 
   const sorted = Object.entries(score).sort((a, b) => b[1] - a[1]);
-  const top = sorted[0] && sorted[0][1] > 0 ? sorted[0][0] : null;
-  const fitLabel = sorted[0] && sorted[0][1] >= 3 ? 'Strong fit' : sorted[0] && sorted[0][1] >= 2 ? 'Good option' : 'Worth exploring';
+  const top = sorted[0] && sorted[0][1] > 0.5 ? sorted[0][0] : null;
+  const topScore = sorted[0] ? sorted[0][1] : 0;
 
-  const allPaths = [
-    { name: 'MPC', detail: 'Engineering, technology & quantitative careers.', paths: ['JEE Main', 'BITSAT', 'NDA'] },
-    { name: 'BiPC', detail: 'Medicine, health & life sciences.', paths: ['NEET UG'] },
-    { name: 'Commerce', detail: 'Business, accounting & finance.', paths: ['CUET', 'CA Foundation'] },
-    { name: 'Arts / Humanities', detail: 'Design, law, media & social sciences.', paths: ['CLAT', 'NID', 'CUET'] },
-    { name: 'Diploma / Polytechnic', detail: 'Hands-on technical careers after Class 10.', paths: ['Polytechnic entry'] },
-    { name: 'ITI / Vocational', detail: 'Practical, skill-based trades.', paths: ['ITI admission'] },
-  ];
+  // Education direction catalog — describes PATH, not job
+  const catalog = {
+    mpc: { name: 'MPC', detail: 'Mathematics, Physics, Chemistry — 11th–12th MPC stream', keepsOpen: 'MPC keeps engineering, technology, architecture and several science degree routes open.', check: 'Comfort with Mathematics, analytical workload, and availability of MPC at your preferred school/college.' },
+    bipc: { name: 'BiPC', detail: 'Biology, Physics, Chemistry — 11th–12th BiPC stream', keepsOpen: 'BiPC keeps medicine, pharmacy, biotechnology, agriculture and life-sciences degree routes open.', check: 'Genuine interest in Biology and the commitment biPC subjects require.' },
+    mec: { name: 'MEC', detail: 'Mathematics, Economics, Commerce — 11th–12th MEC stream', keepsOpen: 'MEC keeps finance, economics, business analytics and commerce degree routes open.', check: 'Enjoyment of Mathematics alongside economics/business curiosity.' },
+    cec: { name: 'CEC', detail: 'Civics, Economics, Commerce — 11th–12th CEC stream', keepsOpen: 'CEC keeps law, governance, business, social sciences and media degree routes open.', check: 'Interest in commerce, social subjects, communication and governance.' },
+    humanities: { name: 'Humanities', detail: 'Humanities / Arts — 11th–12th Humanities stream', keepsOpen: 'Humanities keeps arts, social sciences, psychology, languages, design and civil-services preparation open.', check: 'Strength in reading, writing, social understanding and creative/practical expression.' },
+    diploma: { name: 'Diploma / Polytechnic', detail: 'Hands-on technical education after Class 10', keepsOpen: 'Diploma can lead to lateral entry into engineering or skilled technical roles.', check: 'Preference for practical learning and earlier specialization versus a traditional Intermediate year.' },
+    vocational: { name: 'Vocational / Skill-based', detail: 'Skill-focused education after Class 10', keepsOpen: 'Vocational keeps skill-based roles, entrepreneurship and further specialized study open.', check: 'Whether skill-focused, hands-on learning suits your child better than a conventional classroom-heavy route.' },
+  };
 
-  const recommended = top
-    ? allPaths.filter((d) => d.name === streamNames[top]).concat(allPaths.filter((d) => d.name !== streamNames[top]).slice(0, 2))
-    : allPaths.slice(0, 3);
+  const allPaths = Object.values(catalog).map((c) => ({ name: c.name, detail: c.detail, keepsOpen: c.keepsOpen, check: c.check }));
+
+  const fitLabel = topScore >= 3 ? 'Strong fit' : topScore >= 1.8 ? 'Good option' : 'Worth exploring';
+  const primary = top ? catalog[top] : null;
+
+  // Alternatives: next 2 that scored >0
+  const alternatives = sorted.filter(([k]) => k !== top && score[k] > 0.5).slice(0, 2).map(([k]) => catalog[k]);
+
+  // Mismatch warning — parent wants one path but child signals point elsewhere
+  let mismatchWarning = null;
+  if (directionDetail && top) {
+    const detailKey = { 'MPC':'mpc','BiPC':'bipc','MEC':'mec','CEC':'cec','Humanities':'humanities','Diploma / Polytechnic':'diploma','Vocational / Skill-based':'vocational'}[directionDetail];
+    if (detailKey && detailKey !== top && (score[top] - score[detailKey] >= 1.2)) {
+      mismatchWarning = `There is a difference between the current consideration (${directionDetail}) and your child’s stated interests and comfort. Before choosing, it would be useful to compare your child’s comfort with ${detailKey === 'mpc' ? 'Mathematics' : detailKey === 'bipc' ? 'Biology' : detailKey === 'mec' ? 'Mathematics/Economics' : 'that stream’s subjects'} against the demands of ${catalog[top].name}.`;
+    }
+  }
+  // Also check learning style vs academic path mismatch
+  if (!mismatchWarning && pathway === 'Traditional academic route → Intermediate / 11th–12th → degree' && (top === 'diploma' || top === 'vocational')) {
+    mismatchWarning = 'Your child’s strongest signals point toward a practical/hands-on path, while the selected pathway is traditional academic. Consider whether a Diploma/Polytechnic or vocational route deserves a closer comparison before deciding.';
+  }
+
+  // WHY — grounded in actual answers, education-focused
+  const whyParts = [];
+  if (enjoy.length) whyParts.push(`Your child enjoys ${enjoy.slice(0, 3).join(', ')}${enjoy.length > 3 ? ' and related areas' : ''}.`);
+  if (strongest.length && !strongest.includes('Still unsure')) whyParts.push(`They feel most comfortable with ${strongest.slice(0, 3).join(', ')}.`);
+  if (learningStyle && learningStyle !== 'A mix / not sure') whyParts.push(`Their preferred way of learning is ${learningStyle.toLowerCase()}.`);
+  if (interests.length && !interests.includes('Not sure')) whyParts.push(`Areas that naturally attract them include ${interests.slice(0, 3).join(', ')}.`);
+  if (direction && direction !== 'Completely unsure') whyParts.push(`Current direction: ${direction.toLowerCase()}${directionDetail ? ` (${directionDetail})` : ''}.`);
+  const why = whyParts.length ? whyParts : ['We’ll keep options flexible so nothing is locked in too early.'];
+  if (priority) why.push(`What matters most to you — ${priority.toLowerCase()} — is reflected in how we compared the options.`);
+  // KeepOpen & next for education context
+  const keepsOpen = primary ? primary.keepsOpen : 'Exploring a few directions with light exposure before choosing is a sensible next step.';
+  const whatToCheck = primary ? primary.check : 'Subject comfort, school/college availability, workload and your child’s genuine interest.';
+  const next = primary
+    ? `Compare ${[primary.name, ...alternatives.map((a) => a.name)].slice(0, 3).join(' vs ')} on subjects, workload and available colleges before making the final choice.`
+    : 'Give a few streams a light try — projects, olympiads or hobby classes — and let us refine this together as things become clearer.';
+
+  // Backward-compatible shape + new stage-aware fields
+  const recommended = primary
+    ? [{ name: primary.name, detail: primary.detail, keepsOpen: primary.keepsOpen, paths: [] }, ...alternatives.map((a) => ({ name: a.name, detail: a.detail, keepsOpen: a.keepsOpen, paths: [] }))]
+    : allPaths.slice(0, 3).map((p) => ({ name: p.name, detail: p.detail, keepsOpen: p.keepsOpen, paths: [] }));
 
   return {
-    headline: top ? streamNames[top] : 'Exploring paths',
+    recommendationType: 'NEXT_EDUCATION_PATH',
+    headline: primary ? primary.name : 'Exploring paths',
     recommended,
+    alternatives,
+    primary,
     fitLabel,
-    why: [
-      `Your child’s interests${future ? ` and the kind of work you imagine for them (${future.toLowerCase()})` : ''} align most closely with ${top ? streamNames[top] : 'an open, exploratory path'}.`,
-      priority ? `Your priority — ${priority.toLowerCase()} — is reflected in the options suggested.` : 'We’ll keep options flexible so nothing is locked in too early.',
-    ],
-    next: top
-      ? `Begin by exploring ${streamNames[top]}-linked subjects and giving ${streamNames[top]} a gentle try through projects, olympiads or hobby classes before a firm choice.`
-      : 'Give a few streams a light try and let us refine this together as things become clearer.',
+    why,
+    keepsOpen,
+    whatToCheck,
+    next,
+    mismatchWarning,
+    // legacy fields for any older renderer
+    educationPaths: recommended,
   };
 }
 
@@ -659,14 +919,42 @@ export const CLASS10_STEPS = [
   { key: 'priority', single: true },
 ];
 
-export const PARENT_CLASS10_ENJOY = ['Solving maths problems', 'Understanding science', 'Computers & technology', 'Business & money', 'Biology & healthcare', 'Reading & writing', 'Design & creativity', 'Understanding people & society', 'Practical / hands-on activities', "They're still figuring it out"];
+// Real steps for Parent → Class 10 (education decision point, NOT career)
+export const PARENT_CLASS10_STEPS = [
+  { key: 'enjoy', multi: true, max: 3 },
+  { key: 'strongest', multi: true, max: 3 },
+  { key: 'learningStyle', single: true },
+  { key: 'interests', multi: true, max: 3 },
+  { key: 'direction', single: true },
+  { key: 'pathway', single: true },
+  { key: 'priority', single: true },
+];
 
-export const PARENT_CLASS10_STRONGEST = ['Mathematics', 'Physics', 'Chemistry', 'Biology', 'Computer Science', 'Social Studies', 'Languages', 'Commerce / Business', 'Multiple subjects equally', 'Not sure'];
+// Dynamic step list — inserts directionDetail only when Q5 is fairly clear
+export function buildParentClass10Steps(answers = {}) {
+  const base = ['enjoy', 'strongest', 'learningStyle', 'interests', 'direction'];
+  if (answers.direction === 'Yes, fairly clear' || answers.direction === 'I have a few options in mind') base.push('directionDetail');
+  base.push('pathway', 'priority');
+  return base;
+}
 
-export const PARENT_CLASS10_FUTURE = ['Building or creating things', 'Technology', 'Medicine or healthcare', 'Business', 'Science or research', 'Design', 'Law or public service', 'Media or communication', 'Agriculture or environment', 'Practical or field-based work', "We're not sure yet"];
+export const PARENT_CLASS10_ENJOY = ['Mathematics', 'Physics / Physical Science', 'Biology / Life Science', 'Social Studies', 'Languages', 'Computers / Technology', 'Commerce / Business', 'Creative subjects', 'Other', "They're still figuring it out"];
 
-export const PARENT_CLASS10_CLARITY = ['They already have a clear idea', 'They have a few ideas', 'They keep changing their mind', "They haven't thought much about it", "We're completely unsure"];
+export const PARENT_CLASS10_STRONGEST = ['Mathematics / problem solving', 'Science / experiments', 'Biology / living systems', 'Business / money / economics', 'Social sciences / current affairs', 'Languages / communication', 'Computers / technology', 'Creative / practical work', 'Still unsure'];
 
+export const PARENT_CLASS10_LEARNING_STYLE = ['Understanding concepts and solving problems', 'Experiments and scientific learning', 'Reading, discussion and explanation', 'Practical / hands-on work', 'Building or working with technology', 'Business / real-world applications', 'A mix / not sure'];
+
+export const PARENT_CLASS10_INTERESTS = ['Technology', 'Science', 'Healthcare', 'Business', 'Finance', 'Law / social issues', 'Design / creative work', 'Government / public service', 'Practical / technical work', 'Not sure'];
+
+export const PARENT_CLASS10_DIRECTION = ['Yes, fairly clear', 'I have a few options in mind', 'My child has some interest but is unsure', 'Completely unsure'];
+
+export const PARENT_CLASS10_DIRECTION_DETAIL = ['MPC', 'BiPC', 'MEC', 'CEC', 'Humanities', 'Diploma / Polytechnic', 'Vocational / Skill-based', 'Not decided'];
+
+export const PARENT_CLASS10_PATHWAY = ['Traditional academic route → Intermediate / 11th–12th → degree', 'Practical / technical learning', 'Diploma / Polytechnic', 'Vocational / skill-based route', 'Not sure yet'];
+
+// Legacy aliases — keep for backward compatibility where older code imports these names
+export const PARENT_CLASS10_FUTURE = PARENT_CLASS10_INTERESTS;
+export const PARENT_CLASS10_CLARITY = PARENT_CLASS10_DIRECTION;
 export const PARENT_CLASS10_PRIORITY = ['A stable career', 'Good earning potential', 'Their interest and happiness', 'Strong future opportunities', 'Government career opportunities', 'Opportunities abroad', 'A balance between interest and career prospects', 'I mainly want to understand what suits them'];
 
 export const GRAD_DIRECTION = [

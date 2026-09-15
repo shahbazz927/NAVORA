@@ -17,7 +17,7 @@ function sanitizeState(obj) {
   // Cap chatHistory to prevent quota DoS (F9)
   if (Array.isArray(obj.chatHistory) && obj.chatHistory.length > 100) obj.chatHistory = obj.chatHistory.slice(-100);
   // Allow-list streams on load — prevents forged eligibility (F2)
-  const ALLOWED = new Set(['mpc','bipc','commerce','arts','other','not_sure','class10','class12','graduate','parent','science_pcm','science_pcb']);
+  const ALLOWED = new Set(['mpc','bipc','mec','cec','commerce','arts','other','not_sure','class10','class12','graduate','parent','science_pcm','science_pcb']);
   if (obj.answers?.stream && !ALLOWED.has(String(obj.answers.stream).toLowerCase())) delete obj.answers.stream;
   if (obj.answers?.streamV2 && !ALLOWED.has(String(obj.answers.streamV2).toLowerCase())) delete obj.answers.streamV2;
   return obj;

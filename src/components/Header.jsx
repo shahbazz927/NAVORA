@@ -12,9 +12,8 @@ const navLinks = [
   { to: '/study-abroad', label: 'Global Study' },
   { to: '/get-started', label: 'Get Started' },
   { to: '/dashboard', label: 'Dashboard' },
-  { to: '/advisor', label: 'AI Advisor' },
+  { to: '/advisor', label: 'Advisor' },
   { to: '/parents', label: 'For Parents' },
-  { to: '/account', label: 'Account' },
 ];
 
 export default function Header() {
@@ -77,18 +76,21 @@ export default function Header() {
           <div className="hidden lg:flex items-center gap-3">
             {user ? (
               <div className="flex items-center gap-2">
-                <span className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-brand-50 text-brand-700 font-ui font-semibold text-sm ring-1 ring-brand-100">
-                  {(user.name || user.email || '?').charAt(0).toUpperCase()}
-                </span>
-                <div className="text-left leading-tight">
-                  <p className="text-[0.82rem] font-semibold text-ink truncate max-w-[9rem]">{user.name || user.email}</p>
-                  <button
-                    onClick={handleLogout}
-                    className="text-xs text-ink-3 hover:text-error flex items-center gap-1 transition-colors cursor-pointer"
-                  >
-                    <LogOut className="w-3 h-3" /> Sign out
-                  </button>
-                </div>
+                <Link to="/account" className="flex items-center gap-2 rounded-full hover:bg-paper-deep px-2 py-1 -ml-2 transition-colors">
+                  <span className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-brand-50 text-brand-700 font-ui font-semibold text-sm ring-1 ring-brand-100">
+                    {(user.name || user.email || '?').charAt(0).toUpperCase()}
+                  </span>
+                  <div className="text-left leading-tight">
+                    <p className="text-[0.82rem] font-semibold text-ink truncate max-w-[9rem]">{user.name || user.email}</p>
+                    <p className="text-xs text-ink-3">View account</p>
+                  </div>
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="text-xs text-ink-3 hover:text-error flex items-center gap-1 transition-colors cursor-pointer ml-1"
+                >
+                  <LogOut className="w-3 h-3" /> Sign out
+                </button>
               </div>
             ) : (
               <Link
@@ -98,12 +100,14 @@ export default function Header() {
                 Sign In
               </Link>
             )}
-            <Link to="/get-started">
-              <span className="inline-flex items-center gap-2 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-ui font-semibold text-sm px-5 py-2.5 shadow-brand transition-all hover:-translate-y-px">
-                Start Your Path
-                <ArrowRight className="w-4 h-4" />
-              </span>
-            </Link>
+            {!user && (
+              <Link to="/get-started">
+                <span className="inline-flex items-center gap-2 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-ui font-semibold text-sm px-5 py-2.5 shadow-brand transition-all hover:-translate-y-px">
+                  Start Your Path
+                  <ArrowRight className="w-4 h-4" />
+                </span>
+              </Link>
+            )}
           </div>
 
           <button
@@ -143,19 +147,36 @@ export default function Header() {
                 );
               })}
               <div className="pt-3 space-y-2">
-                <Link
-                  to="/login"
-                  className="flex items-center justify-center gap-2 rounded-xl border border-brand-200 text-brand-700 font-ui font-semibold text-sm px-5 py-3 transition-colors hover:bg-brand-50"
-                >
-                  Sign In
-                </Link>
-                <Link
-                  to="/get-started"
-                  className="flex items-center justify-center gap-2 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-ui font-semibold text-sm px-5 py-3 shadow-brand transition-colors"
-                >
-                  Start Your Path
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
+                {user ? (
+                  <div className="px-1">
+                    <Link to="/account" className="flex items-center gap-2 px-3 py-2 rounded-xl bg-brand-50 border border-brand-100 hover:bg-brand-100 transition-colors">
+                      <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-white text-brand-700 font-ui font-semibold text-sm">
+                        {(user.name || user.email || '?').charAt(0).toUpperCase()}
+                      </span>
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-ink truncate">{user.name || user.email}</p>
+                        <p className="text-xs text-ink-3">View account</p>
+                      </div>
+                    </Link>
+                    <button onClick={handleLogout} className="mt-2 text-xs text-ink-3 flex items-center gap-1 px-3"><LogOut className="w-3 h-3" /> Sign out</button>
+                  </div>
+                ) : (
+                  <Link
+                    to="/login"
+                    className="flex items-center justify-center gap-2 rounded-xl border border-brand-200 text-brand-700 font-ui font-semibold text-sm px-5 py-3 transition-colors hover:bg-brand-50"
+                  >
+                    Sign In
+                  </Link>
+                )}
+                {!user && (
+                  <Link
+                    to="/get-started"
+                    className="flex items-center justify-center gap-2 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-ui font-semibold text-sm px-5 py-3 shadow-brand transition-colors"
+                  >
+                    Start Your Path
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                )}
               </div>
             </div>
           </motion.div>

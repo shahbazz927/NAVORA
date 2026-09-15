@@ -51,8 +51,8 @@ const howWeThink = [
   },
   {
     icon: Zap,
-    title: 'Technology should help people make better decisions.',
-    copy: 'AI is a tool. The purpose is not to replace human judgement, but to make thoughtful guidance more accessible and scalable.',
+    title: 'Good guidance begins with good questions.',
+    copy: 'NAVORA doesn’t start by telling you what to become. It starts by understanding you — then helps you make sense of your choices. Technology supports the conversation; it doesn’t replace judgement.',
   },
 ];
 
@@ -112,9 +112,12 @@ export default function About() {
             </h1>
 
             <p className="mt-7 text-lg text-ink-2 leading-relaxed max-w-2xl">
-              NAVORA is an AI-powered education and career guidance platform built to
-              help students make better-informed decisions about their future.
+              NAVORA is a personalized education and career guidance platform built to
+              help students make better-informed decisions about their future. The
+              assessment comes first — AI is a supporting capability that helps explain
+              results and answer follow-up questions.
             </p>
+            <p className="eyebrow text-brand-600 mt-4 tracking-[0.14em]">Personalized Education &amp; Career Guidance</p>
             <p className="mt-4 text-ink-2 leading-relaxed max-w-2xl">
               We believe choosing what to study and what to pursue as a career should
               not be based only on marks, trends, pressure, or the opinions of people

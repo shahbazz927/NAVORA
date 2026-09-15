@@ -10,7 +10,7 @@ const columns = [
     links: [
       { label: 'Get started', to: '/get-started' },
       { label: 'Dashboard', to: '/dashboard' },
-      { label: 'AI advisor', to: '/advisor' },
+      { label: 'Advisor', to: '/advisor' },
       { label: 'Help Center', to: '/help' },
       { label: 'Support', to: '/support' },
     ],
@@ -65,7 +65,7 @@ export default function Footer() {
             </p>
             <div className="flex items-center gap-2 mt-3 text-xs text-white/55">
               <Compass className="w-3.5 h-3.5 text-spark-300" />
-              <span>AI-POWERED EDUCATION GUIDANCE</span>
+              <span>PERSONALIZED EDUCATION &amp; CAREER GUIDANCE</span>
             </div>
             <div className="flex items-center gap-2 mt-5 text-[0.7rem] font-ui font-semibold tracking-[0.22em] text-white/45">
               <span>LEARN</span><span className="text-white/25">·</span>

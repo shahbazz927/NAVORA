@@ -52,11 +52,11 @@ function App() {
           <Route path="/about" element={<Layout><About /></Layout>} />
           <Route path="/parents" element={<Layout><Parents /></Layout>} />
           <Route path="/get-started" element={<Layout><UserType /></Layout>} />
-          <Route path="/onboarding/:userType" element={<Layout><Onboarding /></Layout>} />
-          <Route path="/assessment" element={<Layout><AssessmentFlow /></Layout>} />
-          <Route path="/questions/class12" element={<Layout><Class12Questionnaire /></Layout>} />
+          <Route path="/onboarding/:userType" element={<Layout showFooter={false}><Onboarding /></Layout>} />
+          <Route path="/assessment" element={<Layout showFooter={false}><AssessmentFlow /></Layout>} />
+          <Route path="/questions/class12" element={<Layout showFooter={false}><Class12Questionnaire /></Layout>} />
           <Route path="/path/:userType" element={<Layout><RequireAnswers><PathResults /></RequireAnswers></Layout>} />
-          <Route path="/questions/:userType" element={<Layout><Questions /></Layout>} />
+          <Route path="/questions/:userType" element={<Layout showFooter={false}><Questions /></Layout>} />
           <Route path="/recommendations/:userType" element={<Layout><RequireAnswers><Recommendations /></RequireAnswers></Layout>} />
           <Route path="/compare" element={<Layout><Compare /></Layout>} />
           <Route path="/study-abroad" element={<Layout><StudyAbroad /></Layout>} />
