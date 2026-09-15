@@ -8,7 +8,6 @@ import { useScrollTop } from '../hooks/useLocalStorage';
 import { buildStudentProfile, scoreCareers, diversify, getPrimaryDirection, buildWhyBullets, buildPersonalizedReason } from '../data/careerEngine';
 import { ResultsLayout, RecommendationCard, CompareView } from '../components/results';
 import { headerFor, contextFor, nextStepsForResult, unifiedFromCareerEngine, sidebarExamsFrom } from '../data/resultsAdapters';
-import { resolveGraduationProfile, isRelevantOption, filterOptionsForGraduation, getDependentFieldsToClear } from '../data/graduationResolver.js';
 import {
   PARENT_STAGE_HEADING,
   PARENT_STAGE_SUPPORT,
@@ -46,37 +45,21 @@ import {
   PARENT_CLASS10_HEADINGS,
   PARENT_CLASS10_ENJOY,
   PARENT_CLASS10_STRONGEST,
-  PARENT_CLASS10_LEARNING_STYLE,
-  PARENT_CLASS10_INTERESTS,
-  PARENT_CLASS10_DIRECTION,
-  PARENT_CLASS10_DIRECTION_DETAIL,
-  PARENT_CLASS10_PATHWAY,
-  PARENT_CLASS10_PRIORITY,
-  buildParentClass10Steps,
+  PARENT_CLASS10_FUTURE,
+  PARENT_CLASS10_CLARITY,
   buildGraduationResult,
   buildClass12Result,
   buildParentClass10Result,
 } from '../data/assessmentConfig';
-import { saveAssessmentResult } from '../lib/assessmentResults';
-
-// ── Centralized branching mechanism ───────────────────────────
-// Stream is the single source of truth — once chosen it locks the entire
-// downstream pool. This helper replaces scattered conditionals.
-export function getNextQuestion({ stream, previousAnswers, currentQuestion, profile }) {
-  const sid = (stream || '').toLowerCase();
-  const answered = new Set(Object.keys(previousAnswers || {}));
-  if (profile?.degree && !answered.has('degree')) return 'degree';
-  // stream-lock: only return questions whose pool matches sid
-  const pool = CLASS12_STREAMS.map(s=>s.value);
-  if (sid && !pool.includes(sid) && sid !== 'not_sure') return currentQuestion;
-  return currentQuestion;
-}
 
 // ── Flow definitions ─────────────────────────────────────────
+// Five journeys, five questions each. The graduation specialization picker
+// lives INSIDE question 2 so the visible count never exceeds 1–5.
+
 const STEPS_BY_FLOW = {
   student_class12: ['stream', 'subjects', 'interest', 'work', 'attract', 'skills', 'priority'],
   parent_class12: ['stream', 'subjects', 'interest', 'work', 'attract', 'priority', 'clarity'],
-  parent_class10: ['enjoy', 'strongest', 'learningStyle', 'interests', 'direction', 'pathway', 'priority'],
+  parent_class10: ['enjoy', 'strongest', 'future', 'clarity', 'priority'],
   student_graduation: ['family', 'degree', 'interests', 'skills', 'direction'],
   parent_graduation: ['family', 'degree', 'interests', 'skills', 'direction'],
 };
@@ -164,20 +147,10 @@ function OptionCard({ label, selected, onClick, compact = false }) {
 }
 
 function SkillGroup({ group, skills, selected, onToggle }) {
-  const selectedCount = skills.filter((s) => selected.includes(s.value)).length;
   return (
-    <div className="bg-white border border-line rounded-2xl p-4 sm:p-5 shadow-sm">
-      <div className="flex items-center justify-between gap-3 mb-3.5">
-        <p className="text-[0.75rem] font-bold tracking-[0.14em] uppercase text-ink-3">{group}</p>
-        <span
-          className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold tabular-nums shrink-0 ${
-            selectedCount > 0 ? 'bg-brand-50 text-brand-700 border-brand-200' : 'bg-paper text-ink-3 border-line'
-          }`}
-        >
-          {selectedCount} selected
-        </span>
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5" data-testid="skill-chip-list">
+    <div>
+      <p className="text-[0.8rem] font-semibold tracking-wide uppercase text-ink-3 mb-2.5">{group}</p>
+      <div className="flex flex-wrap gap-2" data-testid="skill-chip-list">
         {skills.map((s) => {
           const active = selected.includes(s.value);
           return (
@@ -187,21 +160,14 @@ function SkillGroup({ group, skills, selected, onToggle }) {
               data-testid="skill-chip"
               aria-pressed={active}
               onClick={() => onToggle(s.value)}
-              className={`group flex items-center gap-3 w-full text-left px-4 py-3 rounded-xl border-2 text-[0.9rem] font-medium leading-snug transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-1 ${
+              className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-2 text-[0.88rem] font-medium transition-all duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-1 ${
                 active
-                  ? 'bg-brand-500 text-white border-brand-500 shadow-brand'
-                  : 'bg-surface text-ink border-line hover:border-brand-200 hover:shadow-sm hover:bg-white'
+                  ? 'bg-brand-600 text-white border-brand-600 shadow-sm'
+                  : 'bg-white text-ink-2 border-line hover:border-brand-200 hover:text-ink'
               }`}
             >
-              <span
-                className={`w-5 h-5 shrink-0 flex items-center justify-center rounded-md border-2 transition-colors ${
-                  active ? 'bg-white border-white' : 'bg-white border-line-strong group-hover:border-brand-300'
-                }`}
-                aria-hidden="true"
-              >
-                {active && <Check className="w-3.5 h-3.5" strokeWidth={3} style={{ color: '#2563eb' }} />}
-              </span>
-              <span className={active ? 'text-white' : 'text-ink'}>{s.label}</span>
+              {active && <Check className="w-3.5 h-3.5" strokeWidth={3} />}
+              {s.label}
             </button>
           );
         })}
@@ -214,7 +180,7 @@ function SkillGroup({ group, skills, selected, onToggle }) {
 export default function AssessmentFlow() {
   useScrollTop();
   const navigate = useNavigate();
-  const { userType, answers: savedContextAnswers, setAnswers: saveAnswers } = useUser();
+  const { userType, setAnswers: saveAnswers } = useUser();
 
   const [parentStage, setParentStage] = useState(null);
   const [step, setStep] = useState(0);
@@ -226,41 +192,7 @@ export default function AssessmentFlow() {
     : userType === 'parent' && parentStage ? `parent_${parentStage}`
     : null;
 
-  // Asked/answered registry — prevents duplicate questions and reuses previous answers
-  const askedRegistry = useMemo(() => new Set(Object.keys(answers).filter(k => answers[k] !== undefined && answers[k] !== '' && !(Array.isArray(answers[k]) && answers[k].length === 0))), [answers]);
-
-  const steps = useMemo(() => {
-    if (!flowKey) return [];
-    if (flowKey === 'parent_class10') return buildParentClass10Steps(answers);
-    const base = STEPS_BY_FLOW[flowKey] || [];
-    // Graduation: degree-aware, specialization-aware, level-aware question generation
-    // Every question must be derived from educationLevel + currentDegree + specialization + targetLevel + previousAnswers
-    if (flowKey && flowKey.endsWith('graduation')) {
-      return base.filter(k => {
-        // Check if already answered and still valid — reuse previous answer, skip duplicate
-        if (k === 'family' && answers.family) return false;
-        if (k === 'degree' && answers.degree) {
-          const famDegrees = answers.family ? degreesForFamily(answers.family).map(d=>d.label) : [];
-          if (famDegrees.length && !famDegrees.includes(answers.degree)) return true; // stale degree, re-ask
-          // If degree + specialization already known and valid, skip re-asking degree
-          return false;
-        }
-        if (k === 'interests' && answers.interests && answers.interests.length > 0) {
-          // If interests already answered and degree hasn't changed, skip
-          return false;
-        }
-        if (k === 'skills' && answers.skills && answers.skills.length > 0) {
-          return false;
-        }
-        if (k === 'direction' && answers.direction) {
-          return false;
-        }
-        // Only show questions that provide new decision-making information
-        return true;
-      });
-    }
-    return base;
-  }, [flowKey, answers.stream, answers.direction, answers.directionDetail, answers.family, answers.degree, answers.specialization, answers.interests, answers.skills, askedRegistry]);
+  const steps = flowKey ? STEPS_BY_FLOW[flowKey] : [];
   const total = steps.length;
   const currentKey = steps[step];
   const speaksParent = Boolean(flowKey && FLOWS[flowKey]?.speaks === 'parent');
@@ -279,38 +211,18 @@ export default function AssessmentFlow() {
   // Changing journey resets everything downstream of it.
   useEffect(() => {
     setStep(0);
-    // Reuse valid prior answers for same flow — don't re-ask what we already know
-    if (savedContextAnswers?.flow === flowKey && Object.keys(savedContextAnswers).length > 1) {
-      const { flow, lastSavedAt, ...rest } = savedContextAnswers;
-      setAnswers(rest);
-    } else {
-      setAnswers({});
-    }
+    setAnswers({});
     setShowResult(false);
-  }, [flowKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [flowKey]);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [step, showResult]);
 
-  // Central profile resolution layer — degree-aware, specialization-aware, education-level-aware
-  // Uses stable IDs internally, resolves via graduationDegreeConfig
-  const resolvedGraduationProfile = useMemo(() => {
-    if (!flowKey || !flowKey.endsWith('graduation') || !answers.degree) return null;
-    return resolveGraduationProfile({
-      degreeId: answers.degree,
-      specializationId: answers.specialization,
-      targetLevel: answers.targetLevel || answers.direction,
-      previousAnswers: answers,
-    });
-  }, [flowKey, answers.degree, answers.specialization, answers.targetLevel, answers.direction, answers.family, answers.interests, answers.skills]);
-
   const gradProfile = useMemo(() => {
     if (!flowKey || !flowKey.endsWith('graduation') || !answers.degree) return null;
-    // Use centralized resolver's profile, fallback to legacy resolveProfile
-    if (resolvedGraduationProfile?.profile) return resolvedGraduationProfile.profile;
     return resolveProfile(answers.degree, answers.specialization || answers.degree);
-  }, [flowKey, answers.degree, answers.specialization, resolvedGraduationProfile]);
+  }, [flowKey, answers.degree, answers.specialization]);
 
   // Question 2 has an inline second phase when the degree needs a specialization.
   const specPhase =
@@ -330,16 +242,13 @@ export default function AssessmentFlow() {
 
   const commitCleaned = (key, value) => {
     if (value === undefined || value === '' || value === null || (Array.isArray(value) && value.length === 0)) {
-      // Answer cleared — drop it and everything after it, using dependency-aware clearing
+      // Answer cleared — drop it and everything after it.
       setAnswers((prev) => {
         const next = {};
         const cutoff = orderIndex(key);
         for (const [k, v] of Object.entries(prev)) {
           if (orderIndex(k) < cutoff) next[k] = v;
         }
-        // Also clear dependent fields via resolver helper
-        const deps = getDependentFieldsToClear(key);
-        deps.forEach(d => delete next[d]);
         return next;
       });
       return;
@@ -350,10 +259,6 @@ export default function AssessmentFlow() {
       for (const k of Object.keys(next)) {
         if (k !== key && orderIndex(k) > cutoff) delete next[k];
       }
-      // Dependency-aware clearing for downstream fields
-      const deps = getDependentFieldsToClear(key);
-      deps.forEach(d => { if (d !== key) delete next[d]; });
-      if (key === 'degree') next[key] = value; // re-ensure
       return next;
     });
   };
@@ -362,20 +267,7 @@ export default function AssessmentFlow() {
     setAnswers((prev) => {
       if (prev[key] === value) return prev;
       const next = { ...prev, [key]: value };
-      // Use dependency-aware state reset: clear only fields that depend on changed value
-      // Preserve unrelated profile info (name, language, location, general preferences)
-      const toClear = getDependentFieldsToClear(key);
-      if (toClear.length) {
-        toClear.forEach(f => delete next[f]);
-      } else {
-        // Fallback: family/degree specific handling
-        if (key === 'family') {
-          delete next.degree;
-          delete next.specialization;
-          delete next.targetLevel;
-        }
-      }
-      // Family change invalidates degree and specialization; keep educationLevel
+      // A new family invalidates the chosen degree and its specialization.
       if (key === 'family') {
         delete next.degree;
         delete next.specialization;
@@ -385,14 +277,6 @@ export default function AssessmentFlow() {
       if (key === 'degree') {
         if (degreeHasSpecializations(value)) delete next.specialization;
         else next.specialization = value;
-        // Store stable IDs and educationLevel explicitly
-        next.currentDegree = value;
-        next.educationLevel = 'graduation';
-      }
-      // Direction / targetLevel change: store both aliases for compatibility
-      if (key === 'direction') {
-        next.targetLevel = value;
-        next.intendedNextLevel = value;
       }
       const cutoff = orderIndex(key);
       for (const k of Object.keys(next)) {
@@ -421,15 +305,7 @@ export default function AssessmentFlow() {
   /* ── Prompts & options ────────────────────────────────────── */
 
   const promptFor = (k) => {
-    if (flowKey === 'parent_class10') {
-      const subs = {
-        enjoy: 'Choose up to 3 subjects your child enjoys. Select what they naturally gravitate toward, not what they score highest in.',
-        strongest: 'Choose up to 3. Think about where they feel comfortable, not just marks.',
-        interests: 'Choose up to 3 areas that naturally attract their attention — not jobs, just curiosities.',
-        directionDetail: 'Select the stream/pathway they are currently considering, if any.',
-      };
-      return { text: PARENT_CLASS10_HEADINGS[k] || '', sub: subs[k] || '' };
-    }
+    if (flowKey === 'parent_class10') return { text: PARENT_CLASS10_HEADINGS[k] || '', sub: '' };
     if (flowKey === 'student_class12') {
       const texts = {
         stream: CLASS12_STREAM_HEADING,
@@ -518,7 +394,6 @@ export default function AssessmentFlow() {
         return null; // graduation skills rendered separately (grouped)
       }
       case 'priority':
-        if (flowKey === 'parent_class10') return strOpts(PARENT_CLASS10_PRIORITY);
         return strOpts(speaksParent ? PARENT_PRIORITIES : CLASS12_PRIORITIES);
       case 'clarity':
         return strOpts(flowKey === 'parent_class10' ? PARENT_CLASS10_CLARITY : PARENT_CLASS12_CLARITY);
@@ -526,26 +401,18 @@ export default function AssessmentFlow() {
         return strOpts(PARENT_CLASS10_ENJOY);
       case 'strongest':
         return strOpts(PARENT_CLASS10_STRONGEST);
-      case 'learningStyle':
-        return strOpts(PARENT_CLASS10_LEARNING_STYLE);
-      case 'interests':
-        if (flowKey === 'parent_class10') return strOpts(PARENT_CLASS10_INTERESTS);
-        return (gradProfile?.interests || []);
-      case 'direction':
-        if (flowKey === 'parent_class10') return strOpts(PARENT_CLASS10_DIRECTION);
-        return gradDirectionForFamily(answers.family || '');
-      case 'directionDetail':
-        return strOpts(PARENT_CLASS10_DIRECTION_DETAIL);
-      case 'pathway':
-        return strOpts(PARENT_CLASS10_PATHWAY);
       case 'future':
         return strOpts(PARENT_CLASS10_FUTURE);
+      case 'direction':
+        return gradDirectionForFamily(answers.family || '');
       case 'family':
         return strOpts(GRADUATION_FAMILIES);
       case 'degree':
         return degreesForFamily(answers.family || '').map((d) => ({ value: d.label, label: d.label }));
       case 'specialization':
         return specOptions(answers.degree || '');
+      case 'interests':
+        return (gradProfile?.interests || []);
       default:
         return [];
     }
@@ -626,7 +493,6 @@ export default function AssessmentFlow() {
 
   const careerEngine = useMemo(() => {
     if (!showResult || !flowKey) return null;
-    if (flowKey === 'parent_class10') return null; // stage-aware: Class 10 Parent must NOT use career/job engine
     const profile = buildStudentProfile(answers, flowKey);
     const scored = scoreCareers(profile);
     const ranked = diversify(scored, 4);
@@ -738,267 +604,20 @@ function UnifiedResults({ flowKey, answers, result, unified, header, context, on
   );
 }
 
-function EducationDirectionCard({ item, rank, compared, cantAdd, onToggleCompare, open, onToggleDetail }) {
-  const isFirst = rank === 0;
-  return (
-    <article className={`bg-white border rounded-[14px] p-5 sm:p-6 ${isFirst ? 'border-[#c9d6ff] shadow-card' : 'border-line shadow-card'}`}>
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold ${item.level === 'Strong fit' ? 'bg-brand-50 text-brand-700 border-brand-200' : item.level === 'Good option' ? 'bg-brand-50 text-brand-700 border-brand-200' : 'bg-paper text-ink-3 border-line'}`}>
-              {item.level}
-            </span>
-            {isFirst && <span className="inline-flex items-center rounded-full bg-brand-600 text-white px-2.5 py-1 text-xs font-semibold">Top suggestion</span>}
-          </div>
-          <h3 id={`edu-t-${item.id}`} className="mt-3 font-ui font-bold text-[1.15rem] sm:text-[1.25rem] text-ink leading-tight">{item.title}</h3>
-          <p className="mt-1 text-sm text-ink-2 leading-relaxed">{item.detail}</p>
-        </div>
-        <label className="flex items-center gap-2 text-xs font-medium text-ink-3 shrink-0 cursor-pointer">
-          <input type="checkbox" checked={compared} disabled={cantAdd && !compared} onChange={onToggleCompare} className="w-4 h-4 rounded border-line text-brand-600 focus:ring-brand-500" />
-          Compare
-        </label>
-      </div>
-      <div className="mt-4 space-y-3">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-wider text-ink-3 mb-1">Why this fits</p>
-          <ul className="space-y-1">
-            {(item.whyMatches || []).slice(0, 2).map((w, i) => (
-              <li key={i} className="flex gap-2 text-sm text-ink-2 leading-relaxed"><span className="mt-1.5 w-1 h-1 rounded-full bg-brand-500 shrink-0" />{w}</li>
-            ))}
-          </ul>
-        </div>
-        <div className="rounded-xl bg-paper border border-line p-3">
-          <p className="text-xs font-bold uppercase tracking-wider text-ink-3 mb-1">What this keeps open</p>
-          <p className="text-sm text-ink-2 leading-relaxed">{item.keepsOpen}</p>
-        </div>
-        {open && (
-          <div className="rounded-xl border border-line bg-paper p-3 space-y-2">
-            <p className="text-xs font-bold uppercase tracking-wider text-ink-3">What to check before choosing</p>
-            <p className="text-sm text-ink-2 leading-relaxed">{item.whatToCheck}</p>
-            <p className="text-xs font-bold uppercase tracking-wider text-ink-3 mt-3">Note</p>
-            <p className="text-sm text-ink-2 leading-relaxed">NAVORA recommends the next education path, not a final career. Career exploration comes later.</p>
-          </div>
-        )}
-      </div>
-      <div className="mt-4 flex items-center justify-between gap-3">
-        <button type="button" onClick={onToggleDetail} className="text-xs font-semibold text-brand-700 hover:text-brand-800">
-          {open ? 'Show less' : 'Show more'}
-        </button>
-        <span className="text-xs text-ink-3">Stream • 11th–12th decision</span>
-      </div>
-    </article>
-  );
-}
-
-function ParentClass10Result({ result, answers, onBack, onRetake, onSaveDashboard }) {
-  const [filter, setFilter] = useState('All');
-  const [toast, setToast] = useState('');
-  const [stepsChecked, setStepsChecked] = useState({});
-  const [compareOpen, setCompareOpen] = useState(false);
-  const [openId, setOpenId] = useState(null);
-  const [compareIds, setCompareIds] = useState([]);
-
-  // Identical 12th dashboard — RecommendationCard shape (Option 2) + subjects in Learn More
-  const educationItems = useMemo(() => {
-    const subjectsByStream = {
-      MPC: ['Mathematics', 'Physics', 'Chemistry'],
-      BiPC: ['Biology', 'Physics', 'Chemistry'],
-      MEC: ['Mathematics', 'Economics', 'Commerce'],
-      CEC: ['Civics', 'Economics', 'Commerce'],
-      Humanities: ['History', 'Political Science', 'Economics', 'Psychology', 'Languages'],
-      'Diploma / Polytechnic': ['Applied Mathematics', 'Applied Physics', 'Engineering Drawing', 'Workshop Practice'],
-      'Vocational / Skill-based': ['Trade Theory', 'Workshop Practice', 'Employability Skills', 'Practical Labs'],
-      'Arts / Humanities': ['History', 'Political Science', 'Economics', 'Psychology', 'Languages'],
-      Commerce: ['Commerce', 'Economics', 'Business Studies'],
-    };
-    const recs = result.recommended || [];
-    return recs.map((r, idx) => {
-      const level = idx === 0 ? result.fitLabel : idx === 1 ? 'Good option' : 'Worth exploring';
-      const normalized = ['Strong fit', 'Good option', 'Worth exploring'].includes(level) ? level : 'Worth exploring';
-      const score = normalized === 'Strong fit' ? 88 : normalized === 'Good option' ? 72 : 58;
-      const why = idx === 0 ? (result.why || []).slice(0, 2) : [r.detail];
-      const subjects = subjectsByStream[r.name] || subjectsByStream[r.name.trim()] || [];
-      return {
-        career: {
-          id: r.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-          title: r.name,
-          category: '11th–12th Stream',
-          description: r.detail,
-          subjects,
-          skillsToDevelop: [],
-          experienceIdeas: [r.keepsOpen || result.keepsOpen],
-          educationRoutes: [r.detail],
-          roles: [],
-          responsibilities: [],
-          objectives: [],
-          skillsAndQualifications: [],
-          preferredQualifications: [],
-        },
-        title: r.name,
-        score,
-        level: normalized,
-        band: normalized,
-        degree: { short: r.name, full: r.detail },
-        exams: [],
-        foundations: [],
-        whyMatches: why,
-        considerations: [r.whatToCheck || result.whatToCheck],
-        factors: [
-          { key: 'Interest alignment', weight: 30, value: score, why: why[0] || 'Matched to your answers' },
-          { key: 'Stream compatibility', weight: 20, value: normalized === 'Strong fit' ? 90 : 60, why: 'Education path fit' },
-          { key: 'What this keeps open', weight: 20, value: 75, why: r.keepsOpen || result.keepsOpen },
-          { key: 'What to check', weight: 15, value: 70, why: 'Check before choosing' },
-          { key: 'Next step', weight: 15, value: 65, why: result.next },
-        ],
-        activity: r.keepsOpen || result.keepsOpen,
-        detail: r.detail,
-        keepsOpen: r.keepsOpen || result.keepsOpen,
-        whatToCheck: r.whatToCheck || result.whatToCheck,
-      };
-    });
-  }, [result]);
-
-  const counts = useMemo(() => ({
-    All: educationItems.length,
-    'Strong fit': educationItems.filter((u) => u.level === 'Strong fit').length,
-    'Good option': educationItems.filter((u) => u.level === 'Good option').length,
-    'Worth exploring': educationItems.filter((u) => u.level === 'Worth exploring').length,
-  }), [educationItems]);
-
-  const visible = useMemo(() => (filter === 'All' ? educationItems : educationItems.filter((u) => u.level === filter)), [educationItems, filter]);
-
-  const header = useMemo(() => ({
-    eyebrow: 'Your Child’s Next Education Direction',
-    title: result.primary ? result.primary.name : 'Exploring paths',
-    subtitle: result.primary ? result.primary.detail : 'Let’s keep options open and compare before choosing.',
-  }), [result]);
-
-  const context = useMemo(() => {
-    const c = [];
-    if (Array.isArray(answers.enjoy) && answers.enjoy.length) c.push(`Enjoys: ${answers.enjoy.slice(0, 3).join(' · ')}`);
-    if (Array.isArray(answers.strongest) && answers.strongest.length) c.push(`Comfort: ${answers.strongest.slice(0, 3).join(' · ')}`);
-    if (answers.learningStyle) c.push(`Learning: ${answers.learningStyle}`);
-    if (Array.isArray(answers.interests) && answers.interests.length) c.push(`Interests: ${answers.interests.slice(0, 3).join(' · ')}`);
-    if (answers.direction) c.push(`Direction: ${answers.direction}${answers.directionDetail ? ` (${answers.directionDetail})` : ''}`);
-    if (answers.pathway) c.push(`Pathway: ${answers.pathway}`);
-    c.unshift('Stage: Parent · Class 10');
-    return c;
-  }, [answers]);
-
-  const nextSteps = useMemo(() => nextStepsForResult('parent_class10', { title: result.primary?.name || 'your top direction' }, null), [result]);
-  const compareItems = useMemo(() => compareIds.map((id) => educationItems.find((u) => u.career.id === id)).filter(Boolean), [compareIds, educationItems]);
-  const compareRows = useMemo(() => [
-    ['Fit Score', (r) => String(r.score) + ' / 100'],
-    ['Stream', (r) => r.title],
-    ['Detail', (r) => r.detail],
-    ['What this keeps open', (r) => r.keepsOpen],
-    ['What to check', (r) => r.whatToCheck],
-    ['Why it fits', (r) => (r.whyMatches?.[0] || '-')],
-  ], []);
-
-  useEffect(() => { if (!toast) return; const t = setTimeout(() => setToast(''), 2600); return () => clearTimeout(t); }, [toast]);
-
-  const toggleCompare = (id) => {
-    if (compareIds.includes(id)) { setCompareIds(compareIds.filter((x) => x !== id)); return; }
-    if (compareIds.length >= 3) { setToast('You can compare up to 3 options at a time.'); return; }
-    setCompareIds([...compareIds, id]);
-  };
-
-  const mismatchBanner = result.mismatchWarning ? (
-    <div className="max-w-7xl mx-auto px-5 sm:px-8 pt-4">
-      <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-relaxed text-amber-900">
-        <p className="font-semibold">Heads up</p>
-        <p className="mt-1">{result.mismatchWarning}</p>
-      </div>
-    </div>
-  ) : null;
-
-  return (
-    <>
-      {mismatchBanner}
-      <ResultsLayout
-        onBack={onBack}
-        header={header}
-        context={context}
-        filters={['All', 'Strong fit', 'Good option', 'Worth exploring']}
-        counts={counts}
-        activeFilter={filter}
-        onFilter={setFilter}
-        compareCount={compareIds.length}
-        onCompare={() => setCompareOpen(true)}
-        onClearCompare={() => setCompareIds([])}
-        items={visible}
-        renderCard={(item) => (
-          <RecommendationCard
-            key={item.career.id}
-            item={item}
-            rank={educationItems.indexOf(item)}
-            compared={compareIds.includes(item.career.id)}
-            cantAdd={compareIds.length >= 3}
-            onToggleCompare={() => toggleCompare(item.career.id)}
-            open={openId === item.career.id}
-            onToggleDetail={() => setOpenId(openId === item.career.id ? null : item.career.id)}
-            onSave={() => setToast('Saved \u2713')}
-          />
-        )}
-        sidebarExams={[]}
-        sidebarNextColleges={
-          <section className="rounded-[14px] p-5 text-white shadow-card" style={{ background: 'linear-gradient(135deg,#0f1f4d,#0a1638)' }}>
-            <h2 className="flex items-center gap-2 text-[0.72rem] font-bold uppercase text-white/70">Next: what to check</h2>
-            <p className="mt-2 text-sm text-white/85">{result.whatToCheck}</p>
-            <div className="mt-4"><Button size="md" className="w-full" onClick={onSaveDashboard}>Save to dashboard</Button></div>
-          </section>
-        }
-        nextSteps={nextSteps}
-        stepsChecked={stepsChecked}
-        onToggleStep={(k) => setStepsChecked((s) => ({ ...s, [k]: !s[k] }))}
-        onRetake={onRetake}
-        onSave={onSaveDashboard}
-        toast={toast}
-        setToast={setToast}
-        compareOpen={compareOpen}
-        setCompareOpen={setCompareOpen}
-        compareItems={compareItems.length ? compareItems : educationItems.slice(0, 3)}
-        compareRows={compareRows}
-      />
-    </>
-  );
-}
-
   /* ── Render: results — unified shared system (all flows) ─────────── */
   if (showResult && result) {
-    if (flowKey === 'parent_class10') {
-      return <ParentClass10Result result={result} answers={answers} onBack={handleBack} onRetake={retakeFlow} onSaveDashboard={()=>{
-        const stamped = { flow: flowKey, ...answers, lastSavedAt: new Date().toISOString() };
-        saveAnswers(stamped);
-        // Persist FINAL result to Supabase (Dashboard + AI Advisor reuse same data)
-        saveAssessmentResult({
-          assessmentType: flowKey,
-          educationStage: answers.stream || 'parent_class10',
-          assessmentData: stamped,
-          resultData: { result, flowKey }
-        });
-        navigate('/dashboard');
-      }} />;
-    }
     // Use deterministic career engine for every flow so the shared UI has scores/whys
     const unified = unifiedFromCareerEngine(flowKey, answers);
     // ParentClass12 keeps compatibility but now renders via shared system too
     // Filtering + compare + steps live here so every flow shares identical UX
+    const isParent = flowKey?.startsWith('parent_');
+    const FILTERS = ['All','Strong match','Good match','Worth exploring'];
+    // hooks for shared UX — keep above return to respect rules of hooks: move to top (patch below adds state)
+    // This block is intentionally minimal; full state is injected via outer component state below
     const _header = headerFor(flowKey);
     const _context = contextFor(flowKey, answers);
     // Render via UnifiedResults helper defined below
-    return <UnifiedResults flowKey={flowKey} answers={answers} result={result} unified={unified} header={_header} context={_context} onBack={handleBack} onRetake={retakeFlow} onSaveDashboard={()=>{
-      const stamped = { flow: flowKey, ...answers, lastSavedAt: new Date().toISOString() };
-      saveAnswers(stamped);
-      saveAssessmentResult({
-        assessmentType: flowKey,
-        educationStage: answers.stream || answers.family || flowKey,
-        assessmentData: stamped,
-        resultData: { unified, header: _header, context: _context, result, flowKey }
-      });
-      navigate('/dashboard');
-    }} compareIds={compareIds} setCompareIds={setCompareIds} detailId={detailId} setDetailId={setDetailId} />;
+    return <UnifiedResults flowKey={flowKey} answers={answers} result={result} unified={unified} header={_header} context={_context} onBack={handleBack} onRetake={retakeFlow} onSaveDashboard={()=>{ saveAnswers({ flow: flowKey, ...answers, lastSavedAt: new Date().toISOString() }); navigate('/dashboard'); }} compareIds={compareIds} setCompareIds={setCompareIds} detailId={detailId} setDetailId={setDetailId} />;
   }
 
   /* ── Render: question screens ─────────────────────────────── */
@@ -1013,7 +632,6 @@ function ParentClass10Result({ result, answers, onBack, onRetake, onSaveDashboar
   const picked = multi ? answers[currentKey] || [] : [];
   const cap = maxPicksFor(currentKey);
   const bridgeLine = TRANSITIONS[flowKey]?.[step];
-  const emptyOptions = Array.isArray(activeOptions) && activeOptions.length === 0 && !isGradSkills;
 
   return (
     <div className="min-h-screen bg-paper-gradient">
@@ -1090,32 +708,16 @@ function ParentClass10Result({ result, answers, onBack, onRetake, onSaveDashboar
 
             {/* Graduation skills — grouped by category from the degree profile */}
                         {isGradSkills ? (
-              gradProfile ? (
-                <div className="mt-8 space-y-4" data-testid="skill-chip-list">
-                  <div className="flex items-center justify-between">
-                    <p className="text-xs font-semibold text-ink-3">
-                      <span className="font-bold text-brand-600">{picked.length}</span> / {cap} selected
-                    </p>
-                    {picked.length >= cap && <span className="text-xs font-medium text-warning">Maximum reached</span>}
-                  </div>
-                  {Object.entries(gradProfile?.skills || {}).map(([group, list]) => (
-                    <SkillGroup
-                      key={group}
-                      group={group}
-                      skills={list}
-                      selected={picked}
-                      onToggle={(v) => handleMulti('skills', v)}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="mt-8 bg-paper border border-line rounded-xl p-6 text-sm text-ink-2 leading-relaxed">
-                  Choose your degree and specialization first so we can show skills that fit it. Go back and pick a degree to continue.
-                </div>
-              )
-            ) : emptyOptions ? (
-              <div className="mt-8 bg-paper border border-line rounded-xl p-6 text-sm text-ink-2 leading-relaxed">
-                No options available for this choice — please go back and pick a different stream or select “Still exploring” to continue.
+              <div className="mt-8 space-y-7" data-testid="skill-chip-list">
+                {Object.entries(gradProfile?.skills || {}).map(([group, list]) => (
+                  <SkillGroup
+                    key={group}
+                    group={group}
+                    skills={list}
+                    selected={picked}
+                    onToggle={(v) => handleMulti('skills', v)}
+                  />
+                ))}
               </div>
             ) : (
               Array.isArray(activeOptions) && activeOptions.length > 0 && (

@@ -108,24 +108,28 @@ export default function About() {
             </span>
 
             <h1 className="font-ui font-bold text-[2.7rem] leading-[1.04] sm:text-6xl lg:text-[4rem] text-ink text-balance tracking-[-0.03em]">
-              Navigate <em className="font-display italic font-medium text-gradient">your future.</em>
+              Navigate Your Future <em className="font-display italic font-medium text-gradient">With Clarity.</em>
             </h1>
 
             <p className="mt-7 text-lg text-ink-2 leading-relaxed max-w-2xl">
-              NAVORA is a personalized education and career guidance platform built to
-              help students make better-informed decisions about their future. The
-              assessment comes first — AI is a supporting capability that helps explain
-              results and answer follow-up questions.
+              Choosing what to study next can feel like a simple decision. In reality, it
+              can shape years of education, finances, opportunities, and career direction.
             </p>
-            <p className="eyebrow text-brand-600 mt-4 tracking-[0.14em]">Personalized Education &amp; Career Guidance</p>
             <p className="mt-4 text-ink-2 leading-relaxed max-w-2xl">
-              We believe choosing what to study and what to pursue as a career should
-              not be based only on marks, trends, pressure, or the opinions of people
-              around us. Students deserve the opportunity to understand themselves,
-              explore their options, and make decisions with clarity.
+              NAVORA was created because we experienced that uncertainty ourselves.
             </p>
-
-
+            <p className="mt-4 text-ink-2 leading-relaxed max-w-2xl">
+              As students, <span className="font-semibold text-ink">Shahbaz and Azhar</span> often found themselves relying on parents, teachers, friends, seniors, and relatives
+              when making important education decisions. Their advice was valuable and well-intentioned, but it was not always easy to compare different paths,
+              understand what comes after a course, or know how changing opportunities and career trends might affect a decision.
+            </p>
+            <p className="mt-4 text-ink-2 leading-relaxed max-w-2xl">
+              We believed students deserved something better.
+            </p>
+            <p className="mt-4 text-ink-2 leading-relaxed max-w-2xl">
+              NAVORA is our attempt to build that better starting point — an AI-powered education and career guidance platform designed to help students understand their options, explore suitable paths, and make more informed decisions about their future.
+            </p>
+            <p className="eyebrow text-brand-600 mt-6 tracking-[0.14em]">Personalized Education &amp; Career Guidance</p>
           </FadeIn>
         </div>
       </section>
@@ -223,22 +227,18 @@ export default function About() {
                 <div>
                   <p className="eyebrow text-brand-600 mb-3">Our Vision</p>
                   <h3 className="font-ui font-bold text-2xl text-ink tracking-[-0.02em]">
-                    A future where every student can make an informed decision about their future.
+                    To make high-quality education and career guidance more accessible, structured, and understandable for every student.
                   </h3>
                   <p className="mt-4 text-ink-2 leading-relaxed">
-                    We want to create a world where students are not limited by the
-                    information they happen to receive or the people they happen to know.
+                    Regardless of whether they have access to professional guidance — every student should be able to make informed decisions when it matters most.
                   </p>
                   <p className="mt-4 text-ink-2 leading-relaxed">
-                    Our vision is to make meaningful, personalised guidance accessible to
-                    students at the moments when their educational and career decisions
-                    matter most.
+                    And as NAVORA grows, our goal is to go beyond recommendations — helping students continuously understand their education, skills, opportunities, and career options throughout their journey.
                   </p>
                 </div>
                 <div className="mt-2 p-5 rounded-2xl bg-brand-50 border border-brand-100">
                   <p className="font-ui font-semibold text-ink text-sm">
-                    No student should have to choose a future simply because they didn&rsquo;t
-                    know their options.
+                    NAVORA — NAVIGATE YOUR FUTURE.
                   </p>
                 </div>
               </div>
@@ -260,12 +260,12 @@ export default function About() {
                     decisions.
                   </p>
                   <p className="mt-4 text-ink-2 leading-relaxed">
-                    We don&rsquo;t want to tell students who they should become.
+                    We don&apos;t want to tell students who they should become. We want to help them discover what could be possible.
                   </p>
                 </div>
                 <div className="mt-2 p-5 rounded-2xl bg-brand-50 border border-brand-100">
                   <p className="font-ui font-semibold text-ink text-sm">
-                    We want to help them discover what could be possible.
+                    Better decisions begin with better understanding.
                   </p>
                 </div>
               </div>
@@ -423,28 +423,109 @@ export default function About() {
         </div>
       </section>
 
-      {/* ── Our Founders ─────────────────────────────── */}
+      {/* ── The Founders ─────────────────────────────── */}
       <section className="bg-paper border-t border-line">
-        <div className="container-narrow max-w-3xl mx-auto px-5 sm:px-8 py-20 lg:py-24 text-center">
-          <FadeIn>
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 py-20 lg:py-24">
+          <FadeIn className="max-w-3xl mx-auto text-center mb-12">
             <span className="inline-flex w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-500 via-purple to-cyan shadow-glow items-center justify-center mb-7">
               <Heart className="w-8 h-8 text-white" strokeWidth={1.5} />
             </span>
-            <p className="eyebrow text-brand-600 mb-3">Our founders</p>
+            <p className="eyebrow text-brand-600 mb-3">The Founders</p>
             <h2 className="font-ui font-bold text-3xl sm:text-4xl text-ink tracking-[-0.03em] text-balance">
               Built by two co-founders who experienced the problem firsthand.
             </h2>
-            <p className="mt-6 text-ink-2 leading-relaxed">
-              We experienced the lack of proper education and career guidance during our own
-              student years — and that experience became the reason we decided to build
-              NAVORA.
+            <p className="mt-4 text-ink-2 leading-relaxed">
+              Two founders. One shared belief: every student deserves better guidance.
             </p>
-            <div className="mt-7 p-6 rounded-2xl bg-brand-50 border border-brand-100">
-              <p className="font-ui font-semibold text-ink">
-                Two founders. One shared belief: every student deserves better guidance.
-              </p>
-            </div>
           </FadeIn>
+
+          <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+            <FadeIn className="flex">
+              <div className="w-full flex flex-col bg-surface border border-line rounded-[1.4rem] overflow-hidden card-lift hover:border-brand-200">
+                <img
+                  src="https://drive.google.com/thumbnail?id=13-ZWTE9G-8lmXZRuFL8-E30gSbUd7da2&sz=w800"
+                  alt="Shahbaz — Co-Founder of NAVORA"
+                  className="w-full h-[280px] sm:h-[340px] object-cover object-top bg-paper"
+                  loading="lazy"
+                  referrerPolicy="no-referrer"
+                  onError={(e)=>{ e.currentTarget.src='/founders/shahbaz.jpg'; }}
+                />
+                <div className="p-8 flex flex-col gap-4">
+                  <div>
+                    <h3 className="font-ui font-bold text-xl text-ink">Shahbaz</h3>
+                    <p className="eyebrow text-brand-600 text-xs">Co-Founder</p>
+                  </div>
+                  <p className="text-sm font-medium text-ink-2">BBA, Osmania University &nbsp;·&nbsp; MBA, Osmania University</p>
+                  <p className="text-ink-2 leading-relaxed text-sm">
+                    His background in business and management contributes to NAVORA&apos;s focus on structured decision-making, practical education pathways, and understanding how academic choices connect with the wider world of careers and opportunities.
+                  </p>
+                </div>
+              </div>
+            </FadeIn>
+
+            <FadeIn delay={0.08} className="flex">
+              <div className="w-full flex flex-col bg-surface border border-line rounded-[1.4rem] overflow-hidden card-lift hover:border-brand-200">
+                <img
+                  src="https://drive.google.com/thumbnail?id=1NRbaeQgMxuJ4OZc0oOHEJu0EnYfnAVQf&sz=w800"
+                  alt="Azhar — Co-Founder of NAVORA"
+                  className="w-full h-[280px] sm:h-[340px] object-cover object-top bg-paper"
+                  loading="lazy"
+                  referrerPolicy="no-referrer"
+                  onError={(e)=>{ e.currentTarget.src='/founders/azhar.jpg'; }}
+                />
+                <div className="p-8 flex flex-col gap-4">
+                  <div>
+                    <h3 className="font-ui font-bold text-xl text-ink">Azhar</h3>
+                    <p className="eyebrow text-brand-600 text-xs">Co-Founder</p>
+                  </div>
+                  <p className="text-sm font-medium text-ink-2">BBA, Osmania University &nbsp;·&nbsp; MS in Business Finance, Riga Technical University</p>
+                  <p className="text-ink-2 leading-relaxed text-sm">
+                    His background in business and finance contributes to NAVORA&apos;s focus on helping students look beyond the name of a course and consider outcomes, opportunities, financial implications, and long-term career direction.
+                  </p>
+                </div>
+              </div>
+            </FadeIn>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Why We Built NAVORA ────────────────────────── */}
+      <section className="bg-surface border-t border-line">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 py-20 lg:py-24">
+          <div className="grid lg:grid-cols-12 gap-12 items-center">
+            <FadeIn className="lg:col-span-5">
+              <p className="eyebrow text-brand-600 mb-3">Why we built NAVORA</p>
+              <h2 className="font-ui font-bold text-3xl sm:text-4xl text-ink tracking-[-0.03em] text-balance">
+                Which path makes sense for me?
+              </h2>
+              <p className="mt-5 text-ink-2 leading-relaxed">
+                We don&apos;t believe choosing a career should begin with &ldquo;Which course is popular?&rdquo;
+              </p>
+              <p className="mt-3 text-ink font-semibold">
+                It should begin with &ldquo;Which path makes sense for me?&rdquo;
+              </p>
+              <p className="mt-4 text-ink-2 leading-relaxed">
+                Your interests, strengths, academic background, skills, priorities, financial considerations, and long-term goals all matter.
+              </p>
+              <p className="mt-4 text-ink-2 leading-relaxed">
+                NAVORA brings these factors together to help students move from uncertainty to a clearer understanding of their possibilities.
+              </p>
+            </FadeIn>
+            <div className="lg:col-span-7">
+              <div className="bg-paper border border-line rounded-[1.4rem] p-8">
+                <p className="font-ui font-semibold text-ink">We are not here to decide a student&apos;s future for them.</p>
+                <p className="mt-2 text-ink-2 leading-relaxed">We are here to help them understand it better.</p>
+                <div className="mt-6 grid grid-cols-2 gap-3 text-sm">
+                  {['Interests & strengths','Academic background','Skills & priorities','Financial & long-term goals'].map(t=>(
+                    <div key={t} className="flex items-center gap-2 bg-brand-50 border border-brand-100 rounded-xl px-4 py-3">
+                      <Check className="w-4 h-4 text-brand-600 shrink-0" strokeWidth={2.5} />
+                      <span className="font-medium text-ink">{t}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 

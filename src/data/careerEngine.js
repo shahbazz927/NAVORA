@@ -36,12 +36,7 @@ export function buildStudentProfile(answers, flowKey) {
   if (answers.future) profile.workPrefs.push(norm(answers.future));
 
   // Graduation direction (Q5) — must influence the outcome, not be cosmetic
-  // Normalize targetLevel: explicit field > direction > targetLevel alias
-  profile.direction = answers.direction || answers.targetLevel || answers.intendedNextLevel || '';
-  profile.targetLevel = answers.targetLevel || answers.intendedNextLevel || answers.direction || '';
-  profile.educationLevel = flowKey?.includes('graduation') ? 'graduation' : (flowKey || answers.educationLevel || '');
-  profile.currentDegree = answers.currentDegree || answers.degree || '';
-  profile.specialization = answers.specialization || '';
+  profile.direction = answers.direction || '';
 
   // Human-readable labels for the result page (original picks, pre-expansion)
   const pretty = (s) => String(s).replace(/_/g, ' ').trim().replace(/\b\w/g, (c) => c.toUpperCase());
@@ -116,84 +111,11 @@ function workPrefMatch(profile, career) {
   return interestMatch(profile, career) * 0.9 + 0.1; // reuse
 }
 function educationCompatibility(profile, career) {
-  let stream = (profile.stream || '').toLowerCase();
-  // legacy normalisation
-  if (stream === 'commerce') stream = 'mec';
-  if (stream === 'arts') stream = 'cec';
+  const stream = profile.stream; // mpc/bipc/commerce/arts
   const family = (profile.family || '').toLowerCase();
   const degreeFamily = (profile.degreeFamily || '').toLowerCase();
-  const degreeLabel = (profile.degreeLabel || profile.degree || '').toLowerCase();
-  const targetLevel = String(profile.direction || profile.targetLevel || '').toLowerCase();
-  const wantsMasters = ['higher_studies','specialize','research','masters','postgraduate','pg','mba','mca','m_tech','md_ms'].includes(targetLevel);
-
-  // Degree-aware strict check: if degree is specific professional (mbbs, bds, bpharm, nursing, bba, bca, btech)
-  // the career's educationRoutes must mention that degree or be postgraduate-relevant; otherwise penalize heavily
-  if (degreeLabel) {
-    const routesLower = (career.educationRoutes || []).join(' ').toLowerCase();
-    const degreeKeyword = degreeLabel.replace(/[^a-z0-9]/g, '').slice(-8);
-    const keywords = [];
-    if (degreeLabel.includes('mbbs')) keywords.push('mbbs','md','ms');
-    else if (degreeLabel.includes('bds')) keywords.push('bds','mds');
-    else if (degreeLabel.includes('b.pharm') || degreeLabel.includes('bpharm')) keywords.push('pharm','b.pharm','pharm.d');
-    else if (degreeLabel.includes('nursing')) keywords.push('nursing');
-    else if (degreeLabel.includes('bba')) keywords.push('bba','b.com','bcom','commerce','management','mba','business');
-    else if (degreeLabel.includes('bca') || degreeLabel.includes('computer')) keywords.push('bca','computer','software','mca','b.sc computer','b.sc it','information technology');
-    else if (degreeLabel.includes('b.tech') || degreeLabel.includes('btech') || degreeLabel.includes('engineering')) keywords.push('b.tech','btech','engineering','m.tech','b.e.');
-    else keywords.push(degreeKeyword);
-    const routeMentionsDegree = keywords.some(k => routesLower.includes(k));
-    const routeMentionsMasters = /m\.tech|mba|mca|m\.sc|md|ms|masters|postgraduate|pg|m\.phil/.test(routesLower);
-    // If route mentions degree directly, it's accessible — don't penalize as bachelor-only even for masters
-    // e.g., BCA→software-engineer has BCA in routes, so allow even if also bachelor
-    if (routeMentionsDegree) {
-      // But for masters wants, require either masters keyword OR degree match counts as postgraduate-relevant
-      // For now, direct degree match is considered valid progression (postgraduate via same field)
-      // So return 1 early — skip bachelor-only penalty
-      // Exception: for MBBS→masters, nurse/pharmacist should still be filtered even if maybe mentioned?
-    } else {
-      const careerFamilies = (career.familyAffinity||[]).map(f=>f.toLowerCase());
-      const familyMatches = degreeFamily && careerFamilies.includes(degreeFamily);
-      // Only apply bachelor-only filter when family doesn't match — same-family progression is valid even if route mentions bachelor
-      if (!familyMatches) {
-        const bachelorOnlyPattern = /b\.tech|b\.sc|b\.com|bba|bca|bds|mbbs|b\.pharm|bsc nursing|b\.ed|b\.arch/;
-        const isBachelorOnlyRoute = bachelorOnlyPattern.test(routesLower) && !routeMentionsMasters;
-        if (wantsMasters && isBachelorOnlyRoute) {
-          if (['nurse','pharmacist','doctor'].includes(career.id)) {
-            if (career.id !== 'doctor') return 0.15;
-          } else {
-            return 0.15;
-          }
-        }
-      }
-    }
-    if (wantsMasters && !routeMentionsMasters && !routeMentionsDegree) {
-      const bachelorOnlyCareers = ['nurse','pharmacist','b.pharm','nursing'];
-      if (bachelorOnlyCareers.some(b => career.id.includes(b) || routesLower.includes(b))) {
-        return 0.15;
-      }
-    }
-    // Explicit family-mismatch penalties — never show irrelevant families even without masters flag
-    if (degreeLabel.includes('mbbs') && (career.id === 'nurse' || career.id === 'pharmacist')) {
-      // For MBBS, nurse/pharmacist are bachelor-level different tracks → penalize
-      // But allow if explicitly cross-triggered via interests (handled below via eduCompat threshold)
-      return 0.15;
-    }
-    if (degreeLabel.includes('bba') && (career.id === 'doctor' || career.id === 'nurse' || career.id === 'pharmacist' || career.id === 'civil-engineer' || career.id === 'mechanical-engineer')) return 0.15;
-    if ((degreeLabel.includes('bca') || degreeLabel.includes('computer')) && (career.id === 'doctor' || career.id === 'nurse' || career.id === 'pharmacist' || career.id === 'chartered-accountant' || career.id === 'civil-engineer' || career.id === 'mechanical-engineer')) return 0.15;
-    if (degreeLabel.includes('b.tech') && (career.id === 'doctor' || career.id === 'nurse' || career.id === 'pharmacist' || career.id === 'chartered-accountant' || career.id === 'lawyer')) return 0.15;
-    // Cross-check: if career family completely mismatched and no shared affinity, filter
-    const careerFamilies = (career.familyAffinity||[]).map(f=>f.toLowerCase());
-    if (degreeFamily && careerFamilies.length && !careerFamilies.includes(degreeFamily)) {
-      // Check if any career family matches degreeFamily partially
-      const hasOverlap = careerFamilies.some(cf => degreeFamily.includes(cf) || cf.includes(degreeFamily));
-      if (!hasOverlap && wantsMasters) return 0.15;
-    }
-    if (routeMentionsDegree) return 1;
-  }
   // Directly accessible
   if (stream && career.streamAffinity?.includes(stream)) return 1;
-  // mec/cec should also match legacy commerce/arts affinities
-  if (stream === 'mec' && career.streamAffinity?.includes('commerce')) return 1;
-  if (stream === 'cec' && (career.streamAffinity?.includes('arts') || career.streamAffinity?.includes('commerce'))) return 0.9;
   if (degreeFamily && career.familyAffinity?.some((f) => f.toLowerCase() === degreeFamily)) return 1;
   if (family && career.familyAffinity?.some((f) => family.includes(f.toLowerCase()) || f.toLowerCase().includes(family))) return 1;
   // If a degree is known but the career belongs to a different field
