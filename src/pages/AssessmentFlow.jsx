@@ -8,6 +8,7 @@ import { useScrollTop } from '../hooks/useLocalStorage';
 import { buildStudentProfile, scoreCareers, diversify, getPrimaryDirection, buildWhyBullets, buildPersonalizedReason } from '../data/careerEngine';
 import { ResultsLayout, RecommendationCard, CompareView } from '../components/results';
 import { headerFor, contextFor, nextStepsForResult, unifiedFromCareerEngine, sidebarExamsFrom } from '../data/resultsAdapters';
+import { resolveGraduationProfile, isRelevantOption, filterOptionsForGraduation, getDependentFieldsToClear } from '../data/graduationResolver.js';
 import {
   PARENT_STAGE_HEADING,
   PARENT_STAGE_SUPPORT,
@@ -225,11 +226,41 @@ export default function AssessmentFlow() {
     : userType === 'parent' && parentStage ? `parent_${parentStage}`
     : null;
 
+  // Asked/answered registry — prevents duplicate questions and reuses previous answers
+  const askedRegistry = useMemo(() => new Set(Object.keys(answers).filter(k => answers[k] !== undefined && answers[k] !== '' && !(Array.isArray(answers[k]) && answers[k].length === 0))), [answers]);
+
   const steps = useMemo(() => {
     if (!flowKey) return [];
     if (flowKey === 'parent_class10') return buildParentClass10Steps(answers);
-    return STEPS_BY_FLOW[flowKey] || [];
-  }, [flowKey, answers.stream, answers.direction, answers.directionDetail]);
+    const base = STEPS_BY_FLOW[flowKey] || [];
+    // Graduation: degree-aware, specialization-aware, level-aware question generation
+    // Every question must be derived from educationLevel + currentDegree + specialization + targetLevel + previousAnswers
+    if (flowKey && flowKey.endsWith('graduation')) {
+      return base.filter(k => {
+        // Check if already answered and still valid — reuse previous answer, skip duplicate
+        if (k === 'family' && answers.family) return false;
+        if (k === 'degree' && answers.degree) {
+          const famDegrees = answers.family ? degreesForFamily(answers.family).map(d=>d.label) : [];
+          if (famDegrees.length && !famDegrees.includes(answers.degree)) return true; // stale degree, re-ask
+          // If degree + specialization already known and valid, skip re-asking degree
+          return false;
+        }
+        if (k === 'interests' && answers.interests && answers.interests.length > 0) {
+          // If interests already answered and degree hasn't changed, skip
+          return false;
+        }
+        if (k === 'skills' && answers.skills && answers.skills.length > 0) {
+          return false;
+        }
+        if (k === 'direction' && answers.direction) {
+          return false;
+        }
+        // Only show questions that provide new decision-making information
+        return true;
+      });
+    }
+    return base;
+  }, [flowKey, answers.stream, answers.direction, answers.directionDetail, answers.family, answers.degree, answers.specialization, answers.interests, answers.skills, askedRegistry]);
   const total = steps.length;
   const currentKey = steps[step];
   const speaksParent = Boolean(flowKey && FLOWS[flowKey]?.speaks === 'parent');
@@ -262,10 +293,24 @@ export default function AssessmentFlow() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [step, showResult]);
 
+  // Central profile resolution layer — degree-aware, specialization-aware, education-level-aware
+  // Uses stable IDs internally, resolves via graduationDegreeConfig
+  const resolvedGraduationProfile = useMemo(() => {
+    if (!flowKey || !flowKey.endsWith('graduation') || !answers.degree) return null;
+    return resolveGraduationProfile({
+      degreeId: answers.degree,
+      specializationId: answers.specialization,
+      targetLevel: answers.targetLevel || answers.direction,
+      previousAnswers: answers,
+    });
+  }, [flowKey, answers.degree, answers.specialization, answers.targetLevel, answers.direction, answers.family, answers.interests, answers.skills]);
+
   const gradProfile = useMemo(() => {
     if (!flowKey || !flowKey.endsWith('graduation') || !answers.degree) return null;
+    // Use centralized resolver's profile, fallback to legacy resolveProfile
+    if (resolvedGraduationProfile?.profile) return resolvedGraduationProfile.profile;
     return resolveProfile(answers.degree, answers.specialization || answers.degree);
-  }, [flowKey, answers.degree, answers.specialization]);
+  }, [flowKey, answers.degree, answers.specialization, resolvedGraduationProfile]);
 
   // Question 2 has an inline second phase when the degree needs a specialization.
   const specPhase =
@@ -285,13 +330,16 @@ export default function AssessmentFlow() {
 
   const commitCleaned = (key, value) => {
     if (value === undefined || value === '' || value === null || (Array.isArray(value) && value.length === 0)) {
-      // Answer cleared — drop it and everything after it.
+      // Answer cleared — drop it and everything after it, using dependency-aware clearing
       setAnswers((prev) => {
         const next = {};
         const cutoff = orderIndex(key);
         for (const [k, v] of Object.entries(prev)) {
           if (orderIndex(k) < cutoff) next[k] = v;
         }
+        // Also clear dependent fields via resolver helper
+        const deps = getDependentFieldsToClear(key);
+        deps.forEach(d => delete next[d]);
         return next;
       });
       return;
@@ -302,6 +350,10 @@ export default function AssessmentFlow() {
       for (const k of Object.keys(next)) {
         if (k !== key && orderIndex(k) > cutoff) delete next[k];
       }
+      // Dependency-aware clearing for downstream fields
+      const deps = getDependentFieldsToClear(key);
+      deps.forEach(d => { if (d !== key) delete next[d]; });
+      if (key === 'degree') next[key] = value; // re-ensure
       return next;
     });
   };
@@ -310,7 +362,20 @@ export default function AssessmentFlow() {
     setAnswers((prev) => {
       if (prev[key] === value) return prev;
       const next = { ...prev, [key]: value };
-      // A new family invalidates the chosen degree and its specialization.
+      // Use dependency-aware state reset: clear only fields that depend on changed value
+      // Preserve unrelated profile info (name, language, location, general preferences)
+      const toClear = getDependentFieldsToClear(key);
+      if (toClear.length) {
+        toClear.forEach(f => delete next[f]);
+      } else {
+        // Fallback: family/degree specific handling
+        if (key === 'family') {
+          delete next.degree;
+          delete next.specialization;
+          delete next.targetLevel;
+        }
+      }
+      // Family change invalidates degree and specialization; keep educationLevel
       if (key === 'family') {
         delete next.degree;
         delete next.specialization;
@@ -320,6 +385,14 @@ export default function AssessmentFlow() {
       if (key === 'degree') {
         if (degreeHasSpecializations(value)) delete next.specialization;
         else next.specialization = value;
+        // Store stable IDs and educationLevel explicitly
+        next.currentDegree = value;
+        next.educationLevel = 'graduation';
+      }
+      // Direction / targetLevel change: store both aliases for compatibility
+      if (key === 'direction') {
+        next.targetLevel = value;
+        next.intendedNextLevel = value;
       }
       const cutoff = orderIndex(key);
       for (const k of Object.keys(next)) {

@@ -402,9 +402,58 @@ export const PARENT_CLASS10_HEADINGS = {
 };
 
 // ── Result builders ──────────────────────────────────────────
+function _isMastersTarget(val) {
+  const t = String(val || '').toLowerCase().trim().replace(/[^a-z0-9]+/g,'_');
+  return ['higher_studies','specialize','research','masters','postgraduate','pg','mba','mca','m_tech','md_ms','m_sc'].includes(t);
+}
+function _isCareerRelevantForGraduation({ degree, family, targetLevel, careerValue, interests }) {
+  const deg = String(degree||'').toLowerCase();
+  const fam = String(family||'').toLowerCase();
+  const cv = String(careerValue||'').toLowerCase();
+  const wantsMasters = _isMastersTarget(targetLevel);
+  // Masters → filter bachelor-level re-entry careers that are unrelated to current degree
+  if (wantsMasters) {
+    if (deg.includes('mbbs')) {
+      // For MBBS masters, nursing/pharmacy/bpharm/bds bachelor re-entry is irrelevant
+      if (['nurse','nursing','pharmacist','b_pharm','bpharm','pharm'].some(k=> cv.includes(k))) return false;
+      // Also bsc nursing etc
+      if (cv.includes('bsc_nursing') || cv.includes('staff_nurse')) return false;
+    }
+    if (deg.includes('bba')) {
+      if (['doctor','nurse','pharmacist','b_pharm','mbbs','bds','engineering','civil','mechanical'].some(k=> cv.includes(k))) return false;
+    }
+    if (deg.includes('bca') || fam.includes('computer applications')) {
+      if (['doctor','nurse','pharmacist','chartered_accountant','b_pharm','mbbs','civil','mechanical','bds'].some(k=> cv.includes(k))) return false;
+    }
+    if (deg.includes('b.tech') || fam.includes('engineering')) {
+      if (['doctor','nurse','pharmacist','chartered_accountant','lawyer'].some(k=> cv.includes(k))) return false;
+    }
+    // Generic bachelor-level career names that are clearly bachelor re-entry when already graduate + masters
+    const bachelorReentry = ['b_pharm','bsc_nursing','bds','bpt','bot','bsc_medical','staff_nurse','icu_nurse'];
+    if (bachelorReentry.some(k=> cv.includes(k)) && wantsMasters) {
+      // For any graduate wanting masters, bachelor re-entry options are irrelevant
+      return false;
+    }
+  }
+  // Family-mismatch without explicit cross interest → filter
+  // Check if career belongs to family (via profile) — profile.careers already family-filtered, so generally ok
+  // Cross-disciplinary: only allow if interests explicitly mention cross field
+  if (interests && interests.length) {
+    const interestText = interests.join(' ').toLowerCase();
+    const careerFamilyMap = {
+      'md_ms_specialization':'medicine & healthcare','general_practice':'medicine & healthcare','surgery_career':'medicine & healthcare',
+      'financial_analyst':'commerce','marketing':'business','software':'computer',
+    };
+    // For now, profile already scopes careers to family, so no extra filter needed unless cross
+  }
+  return true;
+}
+
 export function buildGraduationResult(answers, isParent = false) {
-  const degree = answers.degree;
+  const degree = answers.degree || answers.currentDegree || '';
   const specialization = answers.specialization || degree || '';
+  const family = answers.family || '';
+  const targetLevel = answers.targetLevel || answers.intendedNextLevel || answers.direction || '';
   const profile = degree ? resolveProfile(degree, specialization) : null;
   const subject = isParent ? 'your child' : 'you';
 
@@ -422,7 +471,11 @@ export function buildGraduationResult(answers, isParent = false) {
   const profileLabel = specialization && specialization !== degree ? specialization : degree;
   const interests = (answers.interests || []).slice(0, 3);
 
-  const careers = (profile.careers || []).slice(0, 4).map((c) => {
+  const filteredCareers = (profile.careers || []).filter(c =>
+    _isCareerRelevantForGraduation({ degree, family, targetLevel, careerValue: c.value, interests })
+  );
+  const careersSource = filteredCareers.length ? filteredCareers : (profile.careers || []);
+  const careers = careersSource.slice(0, 4).map((c) => {
     const required = profile.requiredSkills?.[c.value] || [];
     const overlap = required.filter((s) => selectedSkillIds.includes(s)).length;
     const ratio = required.length ? overlap / required.length : 0;
