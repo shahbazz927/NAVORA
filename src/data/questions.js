@@ -189,29 +189,34 @@ export const questions = {
       ],
     },
   ],
+  // DEPRECATED — Graduation question flow is now the single universal flow in
+  // graduationDegreeConfig.js + graduationEngine.js + graduationPathwayData.js
+  // and rendered via AssessmentFlow.jsx STEPS_BY_FLOW.student_graduation.
+  // Kept only to avoid breaking legacy imports; do not add new graduation
+  // logic here. See src/data/assessmentConfig.js + src/data/graduationEngine.js.
   graduate: [
     {
       id: 'degree',
-      question: 'What degree are you currently pursuing?',
+      question: 'What degree are you pursuing or have completed?',
       type: 'single',
       dynamic: 'degreeCategories',
       options: [],
     },
     {
       id: 'interests',
-      question: 'Which areas of your field interest you most?',
+      question: 'What area of your field interests you most?',
       type: 'multiple',
-      maxSelect: 3,
-      subtitle: 'Choose up to 3',
+      maxSelect: 2,
+      subtitle: 'Pick up to 2 — from your degree-specific list',
       dynamic: 'degreeInterests',
       options: [],
     },
     {
       id: 'skills',
-      question: 'Which skills do you already have?',
+      question: 'What skills are you currently strongest in?',
       type: 'multiple',
-      maxSelect: 6,
-      subtitle: 'Select the skills you have developed through your studies, projects, internships, or experience.',
+      maxSelect: 2,
+      subtitle: 'Pick up to 2 — supporting evidence, not the eligibility gate',
       dynamic: 'degreeSkills',
       options: [],
     },
@@ -224,7 +229,7 @@ export const questions = {
     },
     {
       id: 'career',
-      question: 'What do you want to do after graduation?',
+      question: 'What are you thinking about next?',
       type: 'single',
       dynamic: 'degreeCareers',
       options: [],

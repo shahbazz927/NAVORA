@@ -1,5 +1,6 @@
 import { scoreParentClass12, fitLevel, whyMatches, tradeOffs, examsForCareer, degreeOf } from './parentClass12Scoring.js';
 import { buildStudentProfile, scoreCareers, diversify, getPrimaryDirection } from './careerEngine.js';
+import { graduationUnifiedItems, graduationNextSteps } from './graduationEngine.js';
 
 const pretty = (s)=> String(s||'').replace(/_/g,' ').trim().replace(/\b\w/g,c=>c.toUpperCase());
 
@@ -43,12 +44,15 @@ export function headerFor(flowKey){
   return { eyebrow:'Your results', title:'Your Direction', subtitle:'Based on your answers, here are the paths worth considering.' };
 }
 
-export function nextStepsForResult(flowKey, primaryCareer, gradProfile, answersStage){
+export function nextStepsForResult(flowKey, primaryCareer, gradProfile, answersStage, answers){
   // Contextual next steps — not generic, stage-aware for graduation
   if(flowKey==='parent_class10'){
     return { month: ['Explore the recommended stream subjects together','Try a small project in that stream','Talk to a Class 11–12 student in that stream'], quarter:['Compare MPC / BiPC / Commerce / Arts subjects','Research future career areas for that stream','Visit an open day or lab / studio'], later:['Shortlist target subjects for Classes 11–12','Check entrance paths after Class 12','Revisit after a term of exploration'] };
   }
   if(flowKey?.endsWith('graduation')){
+    // Degree- and stage-specific steps come straight from the graduation engine
+    const fromEngine = graduationNextSteps(answers || {}, flowKey.startsWith('parent_'));
+    if (fromEngine) return fromEngine;
     const role = primaryCareer?.title || 'your top direction';
     const stage = answersStage || gradProfile?.degreeStage || '';
     if (stage === 'year_1' || stage === 'year_2') {
@@ -68,6 +72,12 @@ export function nextStepsForResult(flowKey, primaryCareer, gradProfile, answersS
 }
 
 export function unifiedFromCareerEngine(flowKey, answers){
+  // Graduation flows (student + parent) use the dedicated eligibility engine —
+  // every pathway comes from the selected degree's own data, never from the
+  // generic career list.
+  if (flowKey?.endsWith('graduation')) {
+    return graduationUnifiedItems(answers || {}, flowKey.startsWith('parent_'));
+  }
   const profile = buildStudentProfile(answers, flowKey);
   const scored = scoreCareers(profile);
   const ranked = diversify(scored, 4);

@@ -118,55 +118,11 @@ function educationCompatibility(profile, career) {
   const degreeLabel = (profile.degreeLabel || '').toLowerCase();
   const specialization = (profile.specialization || '').toLowerCase();
 
-  // ── Strict healthcare degree checks: prevent MBBS ↔ Nursing ↔ Pharmacy leaks ──
-  if (degreeLabel || degreeFamily === 'medicine & healthcare') {
-    const dl = degreeLabel;
-    const isNursing = dl.includes('nursing');
-    const isMbbs = dl === 'mbbs';
-    const isBds = dl === 'bds';
-    const isPharm = dl.includes('pharm');
-    const isPhysio = dl.includes('physiotherapy') || dl.includes('bpt');
-    const isLab = dl.includes('laboratory') || dl.includes('medical laboratory');
-    const isRadio = dl.includes('radiology') || dl.includes('imaging');
-    const isBams = dl === 'bams';
-    const isBhms = dl === 'bhms';
-    const isBums = dl === 'bums';
-    const isBsms = dl === 'bsms';
-    const isBnys = dl === 'bnys';
-    const isOpto = dl.includes('optometry');
-    const isCardiac = dl.includes('cardiac');
-    const isAnaesth = dl.includes('anaesthesia');
-    const isOt = dl.includes('operation theatre');
-    const isResp = dl.includes('respiratory');
-    const isDial = dl.includes('dialysis');
-    const isEmerg = dl.includes('emergency');
-    const isBot = dl.includes('occupational') || dl === 'bot';
-    // Nursing strictly nursing
-    if (isNursing && ['doctor','pharmacist'].includes(career.id)) return 0.25;
-    if (isMbbs && career.id === 'nurse') return 0.25;
-    if (isPharm && ['doctor','nurse'].includes(career.id)) return 0.25;
-    if (isPhysio && ['doctor','pharmacist','nurse'].includes(career.id)) return 0.25;
-    if (isBds && ['doctor','pharmacist','nurse'].includes(career.id)) return 0.25;
-    if (isLab && ['doctor','nurse','pharmacist'].includes(career.id)) return 0.25;
-    if (isRadio && ['doctor','nurse','pharmacist'].includes(career.id)) return 0.25;
-    // AYUSH strictly their own
-    if ((isBams||isBhms||isBums||isBsms||isBnys) && ['doctor','nurse','pharmacist'].includes(career.id)) return 0.25;
-    if (isOpto && ['doctor','nurse','pharmacist'].includes(career.id)) return 0.25;
-    if ((isCardiac||isAnaesth||isOt||isResp||isDial||isEmerg||isBot) && ['doctor','nurse','pharmacist'].includes(career.id)) return 0.25;
-  }
-
-  // ── Engineering specialization-aware: CSE vs Mechanical shouldn't cross ──
-  if (degreeLabel === 'b.tech / b.e.' || degreeFamily === 'engineering') {
-    const spec = specialization;
-    const isCse = spec.includes('computer') || spec.includes('artificial') || spec.includes('data science') || spec.includes('information') || spec.includes('cybersecurity');
-    const isMech = spec.includes('mechanical');
-    const isCivil = spec.includes('civil');
-    const isEce = spec.includes('electronics') || spec.includes('electrical');
-    if (isMech && ['software-engineer','data-scientist','ml-engineer','cybersecurity-analyst'].includes(career.id)) return 0.25;
-    if (isCse && ['mechanical-engineer','civil-engineer'].includes(career.id)) return 0.25;
-    if (isCivil && ['software-engineer','ml-engineer','cybersecurity-analyst'].includes(career.id)) return 0.25;
-    if (isEce && ['mechanical-engineer','civil-engineer'].includes(career.id)) return 0.25;
-  }
+  // NOTE: per-degree eligibility (MBBS / BDS / B.Pharm / BPT / CSE vs
+  // Mechanical …) deliberately does NOT live here. Graduation results come from
+  // graduationEngine.js, where eligibility is data-driven from the selected
+  // degree's own profile. This engine only serves Class 12 / parent flows with
+  // generic stream and family affinity.
 
   // Directly accessible
   if (stream && career.streamAffinity?.includes(stream)) return 1;
@@ -204,48 +160,25 @@ const DIRECTION_CAREERS = {
   research: ['biotech-researcher', 'data-scientist', 'environmental-scientist', 'agricultural-scientist', 'ml-engineer'],
 };
 
-// Higher studies granularity: postgraduate / professional routes that are academically appropriate per family.
-// Used to bias direction scoring and to surface via getHigherStudyOptions().
+// NOTE: degree-specific higher-study options (MDS for BDS, M.Pharm for
+// B.Pharm, M.Tech Mechanical for mechanical engineering, …) now live in
+// graduationPathwayData.js and are surfaced by graduationEngine.js. That is the
+// single source of truth; this file keeps only the family-level list used by
+// Class 12 / parent flows.
 export const HIGHER_STUDIES_BY_FAMILY = {
   'Commerce & Finance': ['M.Com', 'MBA / PGDM', 'MSc Finance', 'CA / CFA / ACCA / FRM (professional)'],
   'Business & Management': ['MBA / PGDM', 'MSc Finance / Business Analytics', 'Professional: CFA / FRM / CA where relevant'],
   'Engineering': ['M.Tech', 'MS (abroad)', 'MBA', 'Specialized M.Tech (AI, Data, VLSI, etc.)'],
   'Computer Applications': ['MCA', 'M.Tech / MS', 'MS abroad', 'Specialized master’s (AI, Data, Cybersecurity)'],
-  'Medicine & Healthcare': ['MD / MS / DNB', 'MDS / M.Pharm / MPT as per degree', 'DNB / Diploma specialization'],
-  'Science': ['M.Sc', 'M.Tech (for eligible)', 'MS abroad'],
-  'Arts & Humanities': ['MA', 'MSW / M.Phil', 'Specialized MA'],
-  'Law': ['LL.M', 'LL.M abroad'],
+  'Medicine & Healthcare': ['Relevant postgraduate specialization in your healthcare field', 'MHA / MPH'],
+  'Science': ['M.Sc in your science subject', 'M.Tech (for eligible branches)', 'MS abroad'],
+  'Arts & Humanities': ['MA in your subject', 'MSW / specialised MA'],
+  'Law': ['LL.M (CLAT-PG)', 'LL.M abroad'],
   'Design & Creative': ['M.Des', 'MFA'],
-  'Agriculture & Environment': ['M.Sc Agriculture', 'M.Tech Agri / Env'],
-  'Education': ['M.Ed', 'B.Ed → M.Ed route'],
+  'Agriculture & Environment': ['M.Sc Agriculture / Environmental Science', 'M.Tech Agri / Env'],
+  'Education': ['M.Ed', 'MA in the teaching subject'],
   'Other Professional Programs': ['Relevant master’s / PG diploma'],
 };
-
-export function getHigherStudyOptions(family, degreeLabel = '', specialization = '') {
-  // Specialize further for medicine based on exact degree
-  if (family === 'Medicine & Healthcare') {
-    if (degreeLabel === 'MBBS') return ['MD / MS / DNB', 'Diploma specialization', 'MS abroad (USMLE/PLAB route)'];
-    if (degreeLabel === 'BDS') return ['MDS', 'MDS abroad'];
-    if (degreeLabel === 'B.Sc Nursing') return ['M.Sc Nursing', 'Post-BSc specialization', 'Nurse Practitioner abroad'];
-    if (degreeLabel === 'B.Pharm' || degreeLabel === 'Pharm.D') return ['M.Pharm', 'Pharm.D → PG specialization', 'MS Pharmaceutical Sciences'];
-    if (degreeLabel.includes('Physiotherapy') || degreeLabel.includes('BPT')) return ['MPT', 'Specialized physiotherapy master’s'];
-    if (degreeLabel.includes('Medical Laboratory')) return ['M.Sc MLT', 'Specialized diagnostics master’s'];
-    if (degreeLabel.includes('Radiology')) return ['M.Sc Radiology / Imaging', 'Specialized imaging master’s'];
-  }
-  if (family === 'Business & Management' && specialization) {
-    if (specialization === 'Finance') return ['MBA / PGDM (Finance)', 'MSc Finance', 'CFA / FRM / CA / ACCA'];
-    if (specialization === 'Marketing') return ['MBA / PGDM (Marketing)', 'Masters in Marketing / Brand', 'Digital Marketing specialization'];
-    if (specialization === 'Human Resources') return ['MBA / PGDM (HR)', 'Masters in HR / Labour Law'];
-  }
-  if (family === 'Commerce & Finance' && specialization === 'Finance') return ['MBA / PGDM', 'MSc Finance', 'CFA / FRM / CA'];
-  if (family === 'Engineering' && specialization) {
-    if (specialization.includes('Computer Science') || specialization.includes('AI') || specialization.includes('Data Science') || specialization.includes('Information Technology') || specialization.includes('Cybersecurity')) {
-      return ['M.Tech CSE / AI / Data', 'MS Computer Science (abroad)', 'MBA (if switching to product/management)'];
-    }
-    if (specialization.includes('Mechanical')) return ['M.Tech Mechanical', 'MS Mechanical (abroad)', 'MBA / Specialized MBA'];
-  }
-  return HIGHER_STUDIES_BY_FAMILY[family] || ['Relevant master’s / PG'];
-}
 
 const DIRECTION_FAMILY_BOOST = {
   higher_studies: {

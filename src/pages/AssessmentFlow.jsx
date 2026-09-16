@@ -8,6 +8,7 @@ import { useScrollTop } from '../hooks/useLocalStorage';
 import { buildStudentProfile, scoreCareers, diversify, getPrimaryDirection, buildWhyBullets, buildPersonalizedReason } from '../data/careerEngine';
 import { ResultsLayout, RecommendationCard, CompareView } from '../components/results';
 import { headerFor, contextFor, nextStepsForResult, unifiedFromCareerEngine, sidebarExamsFrom } from '../data/resultsAdapters';
+import { getGraduationProfile, sanitizeGraduationAnswers, buildGraduationResult as engineBuildGraduationResult } from '../data/graduationEngine.js';
 import {
   PARENT_STAGE_HEADING,
   PARENT_STAGE_SUPPORT,
@@ -17,7 +18,6 @@ import {
   degreesForFamily,
   degreeHasSpecializations,
   specOptions,
-  resolveProfile,
   gradDegreeStageOptions,
   gradDirectionForFamily,
   getGraduationDirections,
@@ -223,7 +223,10 @@ export default function AssessmentFlow() {
 
   const gradProfile = useMemo(() => {
     if (!flowKey || !flowKey.endsWith('graduation') || !answers.degree) return null;
-    return resolveProfile(answers.degree, answers.specialization || answers.degree);
+    // Canonical: degreeId + spec -> profile via engine (eligibility source)
+    const spec = answers.specialization || '';
+    // getGraduationProfile expects stable ids or labels — pass labels as stored
+    return getGraduationProfile(answers.degree, spec || answers.degree);
   }, [flowKey, answers.degree, answers.specialization]);
 
   // Question 2 has an inline second phase when the degree needs a specialization.
@@ -346,38 +349,41 @@ export default function AssessmentFlow() {
       return { text: texts[k] || '', sub: '' };
     }
     const isGraduated = answers.degreeStage === 'recently_graduated';
-    // Graduation flows share their structure, wording differs by audience and stage.
+    // Graduation flows share structure, wording differs by audience + graduated vs studying.
+    // Graduated users NEVER see phrasing that assumes they are still studying.
     const p = speaksParent
       ? {
           family: 'Which broad field is your child’s degree in?',
           familySub: 'Pick the broad field first — we’ll narrow it down together.',
           degree: 'What degree are they pursuing or have they completed?',
           degreeSub: 'Only degrees within this field are shown.',
-          interests: isGraduated ? 'Which area of their field interests them most?' : 'Which area of their field interests your child most?',
-          interestsSub: isGraduated ? 'Pick up to 2 areas that interest them most from their completed degree.' : 'Pick up to 2 areas that seem to interest your child.',
-          skills: isGraduated ? 'What is your child already good at?' : 'What would you say your child is already good at?',
-          skillsSub: isGraduated ? 'Think about what they developed through their degree, projects or practice.' : 'Think about what your child has developed through classes, projects or practice.',
-          direction: isGraduated ? 'Now that their degree is complete, what direction are they considering?' : 'After graduation, what would you ideally like to see your child doing?',
+          interests: isGraduated ? 'What area of their field interests them most?' : 'Which area of their field interests your child most?',
+          interestsSub: isGraduated ? 'Pick up to 2 areas that interest them most from their completed degree.' : 'Pick up to 2 areas that seem to interest your child most.',
+          skills: isGraduated ? 'What skills are they currently strongest in?' : 'What would you say your child is already good at?',
+          skillsSub: isGraduated ? 'Think about what they developed through their degree, projects or practice.' : 'Think about what they have developed through classes, projects or practice.',
+          direction: isGraduated ? 'Now that their degree is complete, what are they considering next?' : 'What are they thinking about next?',
+          directionSub: 'Choose the direction that feels closest — we will tailor guidance to this degree and stage.',
         }
       : {
           family: 'Which broad field is your degree in?',
           familySub: 'Pick the broad field first — we’ll narrow it down together.',
           degree: 'What degree are you pursuing or have you completed?',
           degreeSub: 'Only degrees within your chosen field are shown.',
-          interests: isGraduated ? 'Which area of your field interests you most?' : 'What part of your field interests you most?',
+          interests: isGraduated ? 'What area of your field interests you most?' : 'What part of your field interests you most?',
           interestsSub: isGraduated ? 'Pick up to 2 areas that interested you most during your degree.' : 'Pick up to 2 areas that genuinely interest you.',
-          skills: isGraduated ? 'What are you already good at?' : 'What would you say you’re already good at?',
-          skillsSub: isGraduated ? 'Think about what you developed through your degree, projects or work.' : 'Think about what you’ve developed through classes, projects, internships or personal work.',
-          direction: isGraduated ? 'Now that your degree is complete, what direction are you considering?' : 'After graduation, what direction are you considering?',
+          skills: isGraduated ? 'What skills are you currently strongest in?' : 'What would you say you are already good at?',
+          skillsSub: isGraduated ? 'Think about what you developed through your degree, projects or work.' : 'Think about what you have developed through classes, projects, internships or personal work.',
+          direction: 'What are you thinking about next?',
+          directionSub: isGraduated ? 'Your degree is complete — pick what you are considering next.' : 'Pick the direction that feels closest right now.',
         };
     if (k === 'family') return { text: p.family, sub: p.familySub };
     if (k === 'degree') return { text: p.degree, sub: p.degreeSub };
     if (k === 'degreeStage') return speaksParent
-      ? { text: 'Where is your child in their degree?', sub: 'This helps us keep advice practical for their stage.' }
-      : { text: 'Where are you in your degree?', sub: 'This helps us keep advice practical for your stage.' };
+      ? { text: 'Where are you right now?', sub: 'This helps us keep advice practical for their stage.' }
+      : { text: 'Where are you right now?', sub: 'This helps us keep advice practical for your stage.' };
     if (k === 'interests') return { text: p.interests, sub: p.interestsSub };
     if (k === 'skills') return { text: p.skills, sub: p.skillsSub };
-    if (k === 'direction') return { text: p.direction, sub: '' };
+    if (k === 'direction') return { text: p.direction, sub: p.directionSub || '' };
     return { text: '', sub: '' };
   };
 
@@ -502,7 +508,8 @@ export default function AssessmentFlow() {
 
   const result = useMemo(() => {
     if (!showResult || !flowKey) return null;
-    if (flowKey.endsWith('graduation')) return buildGraduationResult(answers, speaksParent);
+    // Graduation uses the canonical eligibility-first engine directly (single source of truth)
+    if (flowKey.endsWith('graduation')) return engineBuildGraduationResult(answers, speaksParent);
     if (flowKey.endsWith('class12')) return buildClass12Result(answers, flowKey === 'parent_class12');
     if (flowKey === 'parent_class10') return buildParentClass10Result(answers);
     return null;
@@ -594,7 +601,10 @@ function UnifiedResults({ flowKey, answers, result, unified, header, context, on
   const visible = filter==='All' ? unified : unified.filter(u=>u.level===filter);
   const primaryCareer = unified[0]?.career || null;
   const exams = sidebarExamsFrom(unified);
-  const steps = nextStepsForResult(flowKey, primaryCareer, null, answers?.degreeStage);
+  // Graduation next steps are degree- + stage-specific: pass the FULL answer set
+  // so the engine (not the generic fallback) produces them. Non-graduation
+  // flows ignore the extra argument.
+  const steps = nextStepsForResult(flowKey, primaryCareer, null, answers?.degreeStage, answers);
   const toggleCompare = (career)=> {
     const id = career.id;
     if(compareIds.includes(id)){ setCompareIds(compareIds.filter(x=>x!==id)); return; }

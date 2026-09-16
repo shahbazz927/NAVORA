@@ -19,8 +19,24 @@
  */
 import graduationDegrees, {
   getSpecializations,
-  getDegreeProfile,
+  getDegreeByRef,
 } from './graduationDegreeConfig.js';
+import {
+  getGraduationProfile,
+  resolveGraduationProfile,
+  getGraduationDirections as getEngineGraduationDirections,
+  gradDirectionForFamily as engineGradDirectionForFamily,
+  GRAD_STAGE_IDS as ENGINE_GRAD_STAGE_IDS,
+  GRAD_STAGE_LABELS as ENGINE_GRAD_STAGE_LABELS,
+  getGraduationStageState,
+  buildGraduationResult as engineBuildGraduationResult,
+  sanitizeGraduationAnswers as engineSanitize,
+} from './graduationEngine.js';
+import {
+  GRAD_DIRECTION as ENGINE_GRAD_DIRECTION,
+  GRAD_DIRECTION_BY_FAMILY as ENGINE_GRAD_DIRECTION_BY_FAMILY,
+  GRAD_DIRECTIONS_BY_PROFILE as ENGINE_GRAD_DIRECTIONS_BY_PROFILE,
+} from './graduationPathwayData.js';
 
 export const TOP_LEVEL_HEADING = 'What kind of guidance are you looking for?';
 export const TOP_LEVEL_SUPPORT =
@@ -83,12 +99,11 @@ export const GRADUATION_FAMILIES = [
 ];
 
 export function degreesForFamily(family) {
-  return graduationDegrees.filter((d) => d.family === family);
+  return getDegreesForFamily(family);
 }
 
 export function degreeHasSpecializations(degreeLabel) {
-  const degree = graduationDegrees.find((d) => d.label === degreeLabel);
-  return !!degree && Array.isArray(degree.specializations) && degree.specializations.length > 0;
+  return hasDegreeSpecializations(degreeLabel);
 }
 
 export function specOptions(degreeLabel) {
@@ -96,7 +111,17 @@ export function specOptions(degreeLabel) {
 }
 
 export function resolveProfile(degree, specialization) {
-  return getDegreeProfile(degree, specialization);
+  const profile = getGraduationProfile(degree, specialization);
+  if (!profile) return null;
+  // Backwards-compatible shape for older callers (degreeProfiles-style).
+  return {
+    ...profile,
+    careers: profile.careers,
+    interests: profile.interests,
+    skills: profile.skills,
+    experiences: profile.experiences,
+    requiredSkills: profile.requiredSkills,
+  };
 }
 
 // ── Graduation degree stage (stable IDs, duration-aware labels) ──
@@ -359,108 +384,17 @@ export const PARENT_CLASS10_HEADINGS = {
 };
 
 // ── Result builders ──────────────────────────────────────────
+// DELEGATE: The canonical Graduation result is the eligibility-first engine
+// in graduationEngine.js (buildGraduationResult). This wrapper keeps backwards
+// compatibility for callers that import from assessmentConfig.js while ensuring
+// ONE source of truth.
 export function buildGraduationResult(answers, isParent = false) {
-  const degree = answers.degree;
-  const family = answers.family || '';
-  const specialization = answers.specialization || degree || '';
-  const degreeStage = answers.degreeStage || answers.degree_stage || '';
-  const profile = degree ? resolveProfile(degree, specialization) : null;
-  const subject = isParent ? 'your child' : 'you';
-  const subjectPoss = isParent ? "your child's" : 'your';
-
-  if (!profile) {
-    return {
-      careers: [], strengths: [], strengthen: [],
-      nextText: `Choose a degree first — then ${subject} can see a tailored career direction.`,
-      profile: null, degreeStage,
-    };
-  }
-
-  const isOther = degree === 'Other' || specialization === 'Other' || profile.id === 'other' || profile.id?.startsWith('other_');
-  const selectedSkillIds = answers.skills || [];
-  const selectedInterests = answers.interests || [];
-  const skillMap = {};
-  (Object.values(profile.skills || {}).flat() || []).forEach((s) => { skillMap[s.value] = s.label; });
-  const interestMap = {};
-  (profile.interests || []).forEach((i) => { interestMap[i.value] = i.label; });
-
-  const profileLabel = specialization && specialization !== degree ? specialization : degree;
-  const stageLabel = degreeStage ? gradDegreeStageLabel(degreeStage) : '';
-  const interestLabels = selectedInterests.map((v) => interestMap[v] || v);
-  const skillLabels = selectedSkillIds.map((v) => skillMap[v] || v);
-
-  // Score each career using composite signal: interest relevance + skill overlap + direction is handled via filtering/boost outside, but here avoid single-skill strong fit
-  const scoredCareers = (profile.careers || []).map((c) => {
-    const required = profile.requiredSkills?.[c.value] || [];
-    const overlap = required.filter((s) => selectedSkillIds.includes(s)).length;
-    const interestOverlap = selectedInterests.filter((i) => {
-      // career value often not directly interest, so use required skills as proxy plus name match
-      return false;
-    }).length;
-    // Use skill overlap + interest count jointly for fit; don't let 1 skill give strong
-    let score = 0;
-    if (required.length) score = overlap / required.length;
-    // interest broadens: if any selected interest, give base 0.2 so Worth exploring not empty
-    const hasInterestSignal = selectedInterests.length > 0;
-    let fit = 'Worth exploring';
-    // Need at least 2 matching skills or 60% ratio to be Strong
-    if ((overlap >= 2 && score >= 0.5) || overlap >= 3) fit = 'Strong match';
-    else if (overlap >= 1 || hasInterestSignal) fit = 'Good match';
-    // For Other, cap at Good match to reduce false specificity
-    if (isOther && fit === 'Strong match') fit = 'Good match';
-    const requiredLabels = required.map((s) => skillMap[s] || s);
-    const missing = required.filter((s) => !selectedSkillIds.includes(s));
-    // Build why: explain which signals influenced
-    const whyParts = [];
-    whyParts.push(`${profileLabel} background`);
-    if (interestLabels.length) whyParts.push(`interest in ${interestLabels.slice(0, 2).join(', ')}`);
-    if (skillLabels.length) whyParts.push(`strength in ${skillLabels.slice(0, 2).join(', ')}`);
-    if (degreeStage) whyParts.push(`${stageLabel}`);
-    const why = `${whyParts.join(' + ')} points toward this route${isOther ? ' — broaden with family-level guidance' : ''}.`;
-    return {
-      label: c.label,
-      value: c.value,
-      fit,
-      why,
-      missing,
-      requiredLabels,
-      overlap,
-      score,
-    };
-  });
-
-  // Sort by overlap/score desc but keep deterministic: strong first
-  scoredCareers.sort((a, b) => b.overlap - a.overlap || b.score - a.score);
-  const careers = scoredCareers.slice(0, 4);
-
-  const topCareers = careers.slice(0, 2);
-  const strengthenSet = [];
-  topCareers.forEach((c) => c.missing.forEach((s) => {
-    if (strengthenSet.indexOf(s) === -1) strengthenSet.push(s);
-  }));
-  const strengthen = strengthenSet.slice(0, 6).map((s) => skillMap[s] || s);
-  const strengths = selectedSkillIds.map((s) => skillMap[s] || s);
-
-  // Build nextText with direction + stage context — stage determines guidance
-  let nextText = `Build on the strengths ${isParent ? 'they already' : 'you already'} have and take a concrete step toward ${topCareers[0]?.label || 'your chosen direction'}.`;
-  if (answers.direction) {
-    const resolved = getGraduationDirections({ family, degree, specialization, degreeStage }).find((d) => d.value === answers.direction) || GRAD_DIRECTION.find((d) => d.value === answers.direction) || gradDirectionForFamily(family).find((d) => d.value === answers.direction);
-    const dir = resolved;
-    if (dir) {
-      let stageHint = '';
-      if (degreeStage === 'year_1' || degreeStage === 'year_2') stageHint = ' — focus on foundations, relevant projects, internships and skill building.';
-      else if (degreeStage === 'final_year') stageHint = ' — focus on placements, portfolio, internships, applications, interview preparation and higher-study planning.';
-      else if (degreeStage === 'recently_graduated') stageHint = ' — focus on job applications, postgraduate applications, professional qualifications, portfolio/resume and relevant entrance exams.';
-      else stageHint = '.';
-      nextText = `${dir.label} is ${subjectPoss} goal — start by closing the key skill gaps above and getting relevant practical experience${stageHint}`;
-      if (isOther) nextText += ' Since the degree was marked as Other, treat this as broad guidance and confirm with family-level options.';
-    }
-  } else if (isOther) {
-    nextText += ' (Broad guidance — degree was marked as Other.)';
-  }
-
-  return { careers, strengths, strengthen, nextText, profile: { family, degree, specialization, degreeStage, interests: selectedInterests, skills: selectedSkillIds }, degreeStage, isOther };
+  return engineBuildGraduationResult(answers, isParent);
 }
+// Also re-export helpers that consumers may expect from this module
+export { engineSanitize as sanitizeGraduationAnswers };
+export const GRAD_STAGE_IDS = ENGINE_GRAD_STAGE_IDS;
+export const GRAD_STAGE_LABELS = ENGINE_GRAD_STAGE_LABELS;
 
 // When a student is still exploring (no specific interest), their answer to
 // "what kind of work would you enjoy" points us toward a concrete direction
@@ -755,357 +689,22 @@ export const PARENT_CLASS10_CLARITY = ['They already have a clear idea', 'They h
 
 export const PARENT_CLASS10_PRIORITY = ['A stable career', 'Good earning potential', 'Their interest and happiness', 'Strong future opportunities', 'Government career opportunities', 'Opportunities abroad', 'A balance between interest and career prospects', 'I mainly want to understand what suits them'];
 
-export const GRAD_DIRECTION = [
-  { value: 'start_working', label: 'Start working' },
-  { value: 'higher_studies', label: 'Higher studies' },
-  { value: 'specialize', label: 'Specialize further' },
-  { value: 'government', label: 'Government career' },
-  { value: 'business', label: 'Start a business' },
-  { value: 'abroad', label: 'Work abroad' },
-  { value: 'research', label: 'Research' },
-  { value: 'still_exploring', label: 'Still exploring' },
-];
-
-/**
- * Degree-aware direction resolver — the authoritative source for what a
- * graduate can do next. Profile/degree is checked first; family is only a
- * fallback. Values stay within GRAD_DIRECTION so scoring keeps working —
- * only labels are contextualized.
- */
-const GRAD_DIRECTIONS_BY_PROFILE = {
-  // ── Medicine & Healthcare — strictly separated
-  'mbbs': [
-    { value: 'start_working', label: 'Start clinical practice' },
-    { value: 'specialize', label: 'Prepare for postgraduate medical specialization (MD / MS / DNB)' },
-    { value: 'higher_studies', label: 'Higher studies in medicine (MD / MS / DNB)' },
-    { value: 'research', label: 'Medical research' },
-    { value: 'government', label: 'Government hospital / public health' },
-    { value: 'abroad', label: 'Practice or study abroad (USMLE / PLAB…)' },
-    { value: 'business', label: 'Healthcare administration / venture' },
-    { value: 'still_exploring', label: 'Still exploring' },
-  ],
-  'bds': [
-    { value: 'start_working', label: 'Start dental practice' },
-    { value: 'specialize', label: 'Prepare for postgraduate dental specialization (MDS)' },
-    { value: 'higher_studies', label: 'Higher studies — MDS / dental postgraduate' },
-    { value: 'research', label: 'Dental research' },
-    { value: 'government', label: 'Dental public-health / government' },
-    { value: 'abroad', label: 'Work or study abroad in dentistry' },
-    { value: 'business', label: 'Start your own dental practice / venture' },
-    { value: 'still_exploring', label: 'Still exploring' },
-  ],
-  'bams': [
-    { value: 'start_working', label: 'Start Ayurvedic practice' },
-    { value: 'specialize', label: 'Postgraduate specialization (MD Ayurveda)' },
-    { value: 'higher_studies', label: 'Higher studies — MD Ayurveda' },
-    { value: 'research', label: 'Ayurvedic research' },
-    { value: 'abroad', label: 'Work or study abroad (Ayurveda / wellness)' },
-    { value: 'still_exploring', label: 'Still exploring' },
-  ],
-  'bhms': [
-    { value: 'start_working', label: 'Start homeopathic practice' },
-    { value: 'specialize', label: 'Postgraduate specialization (MD Homeopathy)' },
-    { value: 'higher_studies', label: 'Higher studies — MD Homeopathy' },
-    { value: 'research', label: 'Homeopathic research' },
-    { value: 'abroad', label: 'Work or study abroad' },
-    { value: 'still_exploring', label: 'Still exploring' },
-  ],
-  'bums': [
-    { value: 'start_working', label: 'Start Unani practice' },
-    { value: 'specialize', label: 'Postgraduate specialization (MD Unani)' },
-    { value: 'higher_studies', label: 'Higher studies — MD Unani' },
-    { value: 'research', label: 'Unani research' },
-    { value: 'still_exploring', label: 'Still exploring' },
-  ],
-  'bsms': [
-    { value: 'start_working', label: 'Start Siddha practice' },
-    { value: 'specialize', label: 'Postgraduate specialization (MD Siddha)' },
-    { value: 'higher_studies', label: 'Higher studies — MD Siddha' },
-    { value: 'research', label: 'Siddha research' },
-    { value: 'still_exploring', label: 'Still exploring' },
-  ],
-  'bnys': [
-    { value: 'start_working', label: 'Start naturopathy / yoga practice' },
-    { value: 'specialize', label: 'Postgraduate specialization (MD Naturopathy)' },
-    { value: 'higher_studies', label: 'Higher studies — MD Naturopathy' },
-    { value: 'research', label: 'Naturopathy research' },
-    { value: 'still_exploring', label: 'Still exploring' },
-  ],
-  'bsc_nursing': [
-    { value: 'start_working', label: 'Start nursing practice' },
-    { value: 'specialize', label: 'Postgraduate nursing specialization (M.Sc Nursing)' },
-    { value: 'higher_studies', label: 'Higher studies — M.Sc Nursing' },
-    { value: 'government', label: 'Government / public-health nursing' },
-    { value: 'research', label: 'Nursing research' },
-    { value: 'abroad', label: 'Work or study abroad in nursing' },
-    { value: 'still_exploring', label: 'Still exploring' },
-  ],
-  'bpt': [
-    { value: 'start_working', label: 'Start physiotherapy practice' },
-    { value: 'specialize', label: 'Postgraduate physiotherapy specialization (MPT)' },
-    { value: 'higher_studies', label: 'Higher studies — MPT' },
-    { value: 'research', label: 'Physiotherapy / rehabilitation research' },
-    { value: 'abroad', label: 'Work or study abroad in physiotherapy' },
-    { value: 'still_exploring', label: 'Still exploring' },
-  ],
-  'bot': [
-    { value: 'start_working', label: 'Start occupational therapy practice' },
-    { value: 'specialize', label: 'Postgraduate OT specialization' },
-    { value: 'higher_studies', label: 'Higher studies — MOT' },
-    { value: 'research', label: 'OT research' },
-    { value: 'still_exploring', label: 'Still exploring' },
-  ],
-  'bpharm': [
-    { value: 'start_working', label: 'Start in pharmacy practice' },
-    { value: 'higher_studies', label: 'Higher studies — M.Pharm' },
-    { value: 'specialize', label: 'Pharmaceutical specialization / industry' },
-    { value: 'research', label: 'Clinical / pharma research' },
-    { value: 'government', label: 'Regulatory / government pharmacy roles' },
-    { value: 'abroad', label: 'Work or study abroad (pharmacy / pharma)' },
-    { value: 'still_exploring', label: 'Still exploring' },
-  ],
-  'pharmd': [
-    { value: 'start_working', label: 'Start clinical pharmacy practice' },
-    { value: 'higher_studies', label: 'Higher studies — M.Pharm / specialization' },
-    { value: 'research', label: 'Clinical research / pharmacovigilance' },
-    { value: 'abroad', label: 'Work or study abroad' },
-    { value: 'still_exploring', label: 'Still exploring' },
-  ],
-  'bsc_medical_lab': [
-    { value: 'start_working', label: 'Start as medical laboratory technologist' },
-    { value: 'higher_studies', label: 'Higher studies — M.Sc MLT' },
-    { value: 'research', label: 'Diagnostic / lab research' },
-    { value: 'government', label: 'Government / hospital lab roles' },
-    { value: 'still_exploring', label: 'Still exploring' },
-  ],
-  'bsc_radiology': [
-    { value: 'start_working', label: 'Start as radiology / imaging technologist' },
-    { value: 'higher_studies', label: 'Higher studies — M.Sc Radiology / Imaging' },
-    { value: 'research', label: 'Imaging research' },
-    { value: 'still_exploring', label: 'Still exploring' },
-  ],
-  'bsc_optometry': [
-    { value: 'start_working', label: 'Start optometry practice' },
-    { value: 'higher_studies', label: 'Higher studies — M.Optom' },
-    { value: 'specialize', label: 'Specialize (low vision, contact lens, etc.)' },
-    { value: 'still_exploring', label: 'Still exploring' },
-  ],
-  'bsc_cardiac': [
-    { value: 'start_working', label: 'Start as cardiac care technologist' },
-    { value: 'higher_studies', label: 'Higher studies in cardiac technology' },
-    { value: 'research', label: 'Cardiac research' },
-    { value: 'still_exploring', label: 'Still exploring' },
-  ],
-  'bsc_anaesthesia': [
-    { value: 'start_working', label: 'Start as anaesthesia technologist' },
-    { value: 'higher_studies', label: 'Higher studies in anaesthesia technology' },
-    { value: 'still_exploring', label: 'Still exploring' },
-  ],
-  'bsc_ot_technology': [
-    { value: 'start_working', label: 'Start as operation theatre technologist' },
-    { value: 'higher_studies', label: 'Higher studies in OT technology' },
-    { value: 'still_exploring', label: 'Still exploring' },
-  ],
-  'bsc_respiratory': [
-    { value: 'start_working', label: 'Start as respiratory therapist' },
-    { value: 'higher_studies', label: 'Higher studies in respiratory care' },
-    { value: 'still_exploring', label: 'Still exploring' },
-  ],
-  'bsc_dialysis': [
-    { value: 'start_working', label: 'Start as dialysis technologist' },
-    { value: 'higher_studies', label: 'Higher studies in dialysis technology' },
-    { value: 'still_exploring', label: 'Still exploring' },
-  ],
-  'bsc_emergency': [
-    { value: 'start_working', label: 'Start as emergency / trauma care specialist' },
-    { value: 'higher_studies', label: 'Higher studies in emergency medicine' },
-    { value: 'still_exploring', label: 'Still exploring' },
-  ],
-  // ── Engineering profiles
-  'btech_cse': [
-    { value: 'start_working', label: 'Start a software / IT career' },
-    { value: 'specialize', label: 'Specialize in AI / Data / Cloud / Security' },
-    { value: 'higher_studies', label: 'Higher studies — M.Tech / MS (CSE)' },
-    { value: 'research', label: 'Research (PhD in CS / AI)' },
-    { value: 'government', label: 'Government / PSU technology roles' },
-    { value: 'abroad', label: 'Work or study abroad (tech hubs)' },
-    { value: 'business', label: 'Start a technology venture' },
-    { value: 'still_exploring', label: 'Still exploring' },
-  ],
-  'btech_mechanical': [
-    { value: 'start_working', label: 'Start as mechanical / design engineer' },
-    { value: 'specialize', label: 'Specialize in EV / Robotics / Manufacturing' },
-    { value: 'higher_studies', label: 'Higher studies — M.Tech Mechanical' },
-    { value: 'government', label: 'Government / PSU (GATE / DRDO / PSC)' },
-    { value: 'abroad', label: 'Work or study abroad' },
-    { value: 'business', label: 'Start your own firm / consultancy' },
-    { value: 'still_exploring', label: 'Still exploring' },
-  ],
-  // ── Business & Commerce
-  'bba_finance': [
-    { value: 'start_working', label: 'Start a finance / business role' },
-    { value: 'higher_studies', label: 'Higher studies — MBA / PGDM (Finance)' },
-    { value: 'specialize', label: 'Specialize — CFA / FRM / CA' },
-    { value: 'government', label: 'Banking / govt finance (IBPS, RBI, SSC)' },
-    { value: 'abroad', label: 'Work or study abroad (finance)' },
-    { value: 'business', label: 'Start a business / venture' },
-    { value: 'still_exploring', label: 'Still exploring' },
-  ],
-  'bba_marketing': [
-    { value: 'start_working', label: 'Start a marketing / brand role' },
-    { value: 'higher_studies', label: 'Higher studies — MBA / PGDM (Marketing)' },
-    { value: 'specialize', label: 'Specialize in digital / brand / consumer' },
-    { value: 'abroad', label: 'Work or study abroad (marketing)' },
-    { value: 'business', label: 'Start your own venture' },
-    { value: 'still_exploring', label: 'Still exploring' },
-  ],
-};
-
-/**
- * Graduation "career direction" options are tailored to the student's field, so
- * a Mechanical Engineering student and a Law student never see the same list.
- *
- * The option VALUES stay within the exact set used by GRAD_DIRECTION so the
- * scoring engine (careerEngine.js) and result builders keep working unchanged —
- * only the labels are made specific to each family. Any family without a
- * dedicated list falls back to the generic GRAD_DIRECTION.
- */
-export const GRAD_DIRECTION_BY_FAMILY = {
-  'Engineering': [
-    { value: 'higher_studies', label: 'Higher studies (M.Tech / M.S. / MBA)' },
-    { value: 'start_working', label: 'Start at an entry-level engineering role' },
-    { value: 'specialize', label: 'Specialize (AI, Data, VLSI, EV, Robotics…)' },
-    { value: 'government', label: 'Government / PSU jobs (GATE, PSC, DRDO)' },
-    { value: 'research', label: 'R&D / Research path (PhD)' },
-    { value: 'abroad', label: 'Work or study abroad' },
-    { value: 'business', label: 'Start your own firm / consultancy' },
-    { value: 'still_exploring', label: 'Still exploring' },
-  ],
-  'Medicine & Healthcare': [
-    { value: 'specialize', label: 'Post-graduate specialization (MD / MS / DNB)' },
-    { value: 'higher_studies', label: 'Higher studies in your medical field' },
-    { value: 'start_working', label: 'Start practicing / clinical work' },
-    { value: 'government', label: 'Government hospitals / public health' },
-    { value: 'research', label: 'Medical / clinical / lab research' },
-    { value: 'abroad', label: 'Practice or study abroad (USMLE / PLAB…)' },
-    { value: 'business', label: 'Open / run your own clinic or venture' },
-    { value: 'still_exploring', label: 'Still exploring' },
-  ],
-  'Computer Applications': [
-    { value: 'start_working', label: 'Start as a software / IT professional' },
-    { value: 'higher_studies', label: 'Higher studies (M.Tech CSE / MCA / M.S.)' },
-    { value: 'specialize', label: 'Specialize (AI, Data Science, Cloud, Security)' },
-    { value: 'government', label: 'Government IT / PSU roles' },
-    { value: 'research', label: 'Research (PhD in CS / AI)' },
-    { value: 'abroad', label: 'Work or study abroad (tech hubs)' },
-    { value: 'business', label: 'Found a startup / freelance' },
-    { value: 'still_exploring', label: 'Still exploring' },
-  ],
-  'Commerce & Finance': [
-    { value: 'start_working', label: 'Start a finance / accounting job' },
-    { value: 'specialize', label: 'Specialize (CA, CFA, FRM, Actuary…)' },
-    { value: 'higher_studies', label: 'Higher studies (M.Com / MBA / MSc Finance)' },
-    { value: 'government', label: 'Banking / govt finance (IBPS, RBI, SSC)' },
-    { value: 'research', label: 'Research / academia / data analysis' },
-    { value: 'abroad', label: 'Finance roles or studies abroad' },
-    { value: 'business', label: 'Start your own business / consultancy' },
-    { value: 'still_exploring', label: 'Still exploring' },
-  ],
-  'Business & Management': [
-    { value: 'start_working', label: 'Start a management / operations role' },
-    { value: 'business', label: 'Start your own venture' },
-    { value: 'higher_studies', label: 'Higher studies (MBA / PGDM)' },
-    { value: 'specialize', label: 'Specialize (Marketing, HR, Finance, Operations)' },
-    { value: 'government', label: 'Government / public administration' },
-    { value: 'abroad', label: 'Management roles or studies abroad' },
-    { value: 'research', label: 'Research / academia (PhD in Management)' },
-    { value: 'still_exploring', label: 'Still exploring' },
-  ],
-  'Science': [
-    { value: 'higher_studies', label: 'Higher studies (M.Sc / M.Tech)' },
-    { value: 'research', label: 'Research (PhD / lab / academia)' },
-    { value: 'specialize', label: 'Specialize in a science domain' },
-    { value: 'start_working', label: 'Start a science-based job (analyst, lab, industry)' },
-    { value: 'government', label: 'Govt research / scientist roles' },
-    { value: 'abroad', label: 'Research or studies abroad' },
-    { value: 'business', label: 'Start a science-based venture' },
-    { value: 'still_exploring', label: 'Still exploring' },
-  ],
-  'Arts & Humanities': [
-    { value: 'higher_studies', label: 'Higher studies (MA / MSW / M.Phil)' },
-    { value: 'start_working', label: 'Start working (content, media, admin)' },
-    { value: 'specialize', label: 'Specialize (journalism, policy, psychology…)' },
-    { value: 'government', label: 'Civil services / government exams' },
-    { value: 'research', label: 'Research / academia' },
-    { value: 'abroad', label: 'Study or work abroad' },
-    { value: 'business', label: 'Freelance / creative venture' },
-    { value: 'still_exploring', label: 'Still exploring' },
-  ],
-  'Law': [
-    { value: 'specialize', label: 'Specialize (corporate, criminal, IP, taxation…)' },
-    { value: 'start_working', label: 'Start practice / litigation' },
-    { value: 'higher_studies', label: 'Higher studies (LL.M)' },
-    { value: 'government', label: 'Judiciary / legal advisory / govt exams' },
-    { value: 'business', label: 'Corporate counsel / legal consultancy' },
-    { value: 'abroad', label: 'Practice or LL.M abroad' },
-    { value: 'research', label: 'Legal research / academia' },
-    { value: 'still_exploring', label: 'Still exploring' },
-  ],
-  'Design & Creative': [
-    { value: 'start_working', label: 'Start as a design / creative professional' },
-    { value: 'specialize', label: 'Specialize (UX/UI, Product, Graphic, Animation…)' },
-    { value: 'higher_studies', label: 'Higher studies (M.Des / MFA)' },
-    { value: 'business', label: 'Freelance / start your own studio' },
-    { value: 'abroad', label: 'Creative roles or studies abroad' },
-    { value: 'government', label: 'Govt / public sector creative roles' },
-    { value: 'research', label: 'Design research / academia' },
-    { value: 'still_exploring', label: 'Still exploring' },
-  ],
-  'Agriculture & Environment': [
-    { value: 'start_working', label: 'Start in agri / food / environmental roles' },
-    { value: 'higher_studies', label: 'Higher studies (M.Sc / M.Tech agri)' },
-    { value: 'research', label: 'Research (agri-science, climate, biodiversity)' },
-    { value: 'government', label: 'Govt agri / environmental roles' },
-    { value: 'business', label: 'Agri-business / agritech venture' },
-    { value: 'abroad', label: 'Work or study abroad in agri / env' },
-    { value: 'specialize', label: 'Specialize (horticulture, forestry, env mgmt)' },
-    { value: 'still_exploring', label: 'Still exploring' },
-  ],
-  'Education': [
-    { value: 'start_working', label: 'Start teaching / training' },
-    { value: 'higher_studies', label: 'Higher studies (M.Ed / B.Ed route)' },
-    { value: 'specialize', label: 'Specialize (special ed, ed-tech, curriculum)' },
-    { value: 'government', label: 'Teacher eligibility / govt education roles' },
-    { value: 'research', label: 'Education research / academia' },
-    { value: 'business', label: 'Ed-tech / start your own institute' },
-    { value: 'abroad', label: 'Teach or study abroad' },
-    { value: 'still_exploring', label: 'Still exploring' },
-  ],
-  //__FAMILIES_MORE__
-};
+// ── Graduation direction data — SINGLE SOURCE: graduationPathwayData.js
+// These re-exports keep backwards compatibility for callers that import from
+// assessmentConfig.js while ensuring ONE authoritative copy.
+export const GRAD_DIRECTION = ENGINE_GRAD_DIRECTION;
+export const GRAD_DIRECTIONS_BY_PROFILE = ENGINE_GRAD_DIRECTIONS_BY_PROFILE;
+export const GRAD_DIRECTION_BY_FAMILY = ENGINE_GRAD_DIRECTION_BY_FAMILY;
 
 /**
  * Resolve the career direction options to show for a graduation student,
  * based on the broad field (family) they selected. Falls back to the generic
  * list when no tailored set exists.
  */
+// Delegated — canonical logic lives in graduationEngine.js / graduationPathwayData.js
 export function gradDirectionForFamily(family = '') {
-  return GRAD_DIRECTION_BY_FAMILY[family] || GRAD_DIRECTION;
+  return engineGradDirectionForFamily(family);
 }
-export function getGraduationDirections({ family = '', degree = '', specialization = '', degreeStage = '' } = {}) {
-  const profile = degree ? resolveProfile(degree, specialization || degree) : null;
-  if (profile?.id && GRAD_DIRECTIONS_BY_PROFILE[profile.id]) return GRAD_DIRECTIONS_BY_PROFILE[profile.id];
-  // Spec-specific fallbacks not covered above
-  if (degree === 'B.Tech / B.E.' && specialization) {
-    const spec = specialization.toLowerCase();
-    if (spec.includes('computer') || spec.includes('ai') || spec.includes('data') || spec.includes('cybersecurity') || spec.includes('information')) return GRAD_DIRECTIONS_BY_PROFILE['btech_cse'];
-    if (spec.includes('mechanical')) return GRAD_DIRECTIONS_BY_PROFILE['btech_mechanical'];
-  }
-  if (degree === 'BBA' && specialization) {
-    if (specialization === 'Finance') return GRAD_DIRECTIONS_BY_PROFILE['bba_finance'];
-    if (specialization === 'Marketing') return GRAD_DIRECTIONS_BY_PROFILE['bba_marketing'];
-  }
-  // Family fallback
-  if (family && GRAD_DIRECTION_BY_FAMILY[family]) return GRAD_DIRECTION_BY_FAMILY[family];
-  return GRAD_DIRECTION;
+export function getGraduationDirections(input = {}) {
+  return getEngineGraduationDirections(input);
 }

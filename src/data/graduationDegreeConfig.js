@@ -533,8 +533,56 @@ const familyFallbacks = {
 
 const GENERAL_FALLBACK_PROFILE = 'other';
 
-function getDegreeEntry(degreeLabel) {
-  return graduationDegrees.find((d) => d.label === degreeLabel) || null;
+/**
+ * Stable id from a display label. Ids are used for all internal state and
+ * lookups (answers.degreeId, answers.specializationId) so display labels can
+ * change without breaking stored answers.
+ */
+export function toId(label) {
+  return String(label || '')
+    .toLowerCase()
+    .replace(/&/g, ' and ')
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '');
+}
+
+// Stable ids are derived once at module load — display labels stay untouched.
+graduationDegrees.forEach((d) => {
+  if (!d.id) d.id = toId(d.label);
+  if (Array.isArray(d.specializations)) d.specIds = d.specializations.map((s) => toId(s));
+});
+
+/** Look up a degree entry by its stable id or its display label. */
+export function getDegreeByRef(ref) {
+  if (!ref) return null;
+  return graduationDegrees.find((d) => d.id === ref || d.label === ref) || null;
+}
+
+export function getDegreeById(id) {
+  return graduationDegrees.find((d) => d.id === id) || null;
+}
+
+export function getDegreeId(ref) {
+  const degree = getDegreeByRef(ref);
+  return degree ? degree.id : null;
+}
+
+export function getDegreeFamily(ref) {
+  const degree = getDegreeByRef(ref);
+  return degree ? degree.family : null;
+}
+
+/** Stable specialization id for a degree + specialization label/id. */
+export function specIdFor(degreeRef, specRef) {
+  const degree = getDegreeByRef(degreeRef);
+  if (!degree || !specRef) return null;
+  const list = degree.specializations || [];
+  const match = list.find((s) => s === specRef || toId(s) === toId(specRef));
+  return match ? toId(match) : null;
+}
+
+function getDegreeEntry(ref) {
+  return getDegreeByRef(ref);
 }
 
 /**
@@ -604,6 +652,12 @@ export function getDegreeProfile(currentDegree, specialization) {
   return {
     ...profile,
     id: resolvedId,
+    // Stable ids — the engine and stored answers key off these, never labels.
+    profileId: resolvedId,
+    degreeId: degree?.id || null,
+    degreeLabel: currentDegree || profile.label,
+    academicLabel: profile.label,
+    specialization: specialization && specialization !== currentDegree ? specialization : '',
     // Shared/alias profiles carry the base degree's label — always surface
     // the student's actual specialization/degree instead.
     label:
@@ -637,10 +691,34 @@ export function resolveProfileId(degreeLabel, specialization) {
  * Get the specialization options for a given degree label.
  * Returns [] if the degree has no specializations.
  */
-export function getSpecializations(degreeLabel) {
-  const degree = getDegreeEntry(degreeLabel);
+export function getSpecializations(degreeRef) {
+  const degree = getDegreeEntry(degreeRef);
   if (!degree) return [];
-  return (degree.specializations || []).map((s) => ({ value: s, label: s }));
+  return (degree.specializations || []).map((s) => ({ id: toId(s), value: s, label: s }));
+}
+
+/**
+ * DEV/QA — every degree/specialization definition must resolve to a profile
+ * that carries interests, skills, experiences and careers. Returns a list of
+ * problem strings (empty = healthy). Used by the engine's own validator.
+ */
+export function auditGraduationProfiles() {
+  const problems = [];
+  for (const degree of graduationDegrees) {
+    const ids = new Set(degree.specIds || []);
+    if (ids.size !== (degree.specializations || []).length) {
+      problems.push(`${degree.label}: duplicate specialization id`);
+    }
+    const profileIds = (degree.specializations || []).length
+      ? (degree.specializations || []).map((s) => degree.profileMap?.[s])
+      : [degree.profileId];
+    profileIds.forEach((pid) => {
+      if (pid && (!degreeProfiles[pid] || !degreeProfiles[pid].careers || degreeProfiles[pid].careers.length === 0)) {
+        problems.push(`${degree.label}: profile "${pid}" has no careers data`);
+      }
+    });
+  }
+  return problems;
 }
 
 /**
