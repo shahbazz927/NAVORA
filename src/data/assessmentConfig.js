@@ -99,11 +99,12 @@ export const GRADUATION_FAMILIES = [
 ];
 
 export function degreesForFamily(family) {
-  return getDegreesForFamily(family);
+  return graduationDegrees.filter((d) => d.family === family);
 }
 
 export function degreeHasSpecializations(degreeLabel) {
-  return hasDegreeSpecializations(degreeLabel);
+  const d = getDegreeByRef(degreeLabel);
+  return Boolean(d && Array.isArray(d.specializations) && d.specializations.length > 0);
 }
 
 export function specOptions(degreeLabel) {
