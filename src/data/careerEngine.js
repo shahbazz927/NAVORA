@@ -10,6 +10,7 @@ export function buildStudentProfile(answers, flowKey) {
     degree: answers.currentDegree || answers.degree || '',
     field: answers.field || answers.interest_area || '',
     specialization: answers.specialization || '',
+    degreeStage: answers.degreeStage || answers.degree_stage || '',
     interests: [],
     strengths: [],
     workPrefs: [],
@@ -114,6 +115,44 @@ function educationCompatibility(profile, career) {
   const stream = profile.stream; // mpc/bipc/commerce/arts
   const family = (profile.family || '').toLowerCase();
   const degreeFamily = (profile.degreeFamily || '').toLowerCase();
+  const degreeLabel = (profile.degreeLabel || '').toLowerCase();
+  const specialization = (profile.specialization || '').toLowerCase();
+
+  // ── Strict healthcare degree checks: prevent MBBS ↔ Nursing ↔ Pharmacy leaks ──
+  if (degreeLabel || degreeFamily === 'medicine & healthcare') {
+    const dl = degreeLabel;
+    const isNursing = dl.includes('nursing');
+    const isMbbs = dl === 'mbbs';
+    const isBds = dl === 'bds';
+    const isPharm = dl.includes('pharm');
+    const isPhysio = dl.includes('physiotherapy') || dl.includes('bpt');
+    const isLab = dl.includes('laboratory') || dl.includes('medical laboratory');
+    const isRadio = dl.includes('radiology') || dl.includes('imaging');
+    if (isNursing && career.id === 'doctor') return 0.25;
+    if (isNursing && career.id === 'pharmacist') return 0.25;
+    if (isMbbs && career.id === 'nurse') return 0.45; // MBBS shouldn't surface nursing as top
+    if (isPharm && career.id === 'doctor') return 0.25;
+    if (isPharm && career.id === 'nurse') return 0.25;
+    if (isPhysio && career.id === 'doctor') return 0.25;
+    if (isPhysio && career.id === 'pharmacist') return 0.25;
+    if (isLab && ['doctor','nurse','pharmacist'].includes(career.id)) return 0.25;
+    if (isRadio && ['doctor','nurse','pharmacist'].includes(career.id)) return 0.25;
+    if (isBds && career.id === 'doctor') return 0.45;
+  }
+
+  // ── Engineering specialization-aware: CSE vs Mechanical shouldn't cross ──
+  if (degreeLabel === 'b.tech / b.e.' || degreeFamily === 'engineering') {
+    const spec = specialization;
+    const isCse = spec.includes('computer') || spec.includes('artificial') || spec.includes('data science') || spec.includes('information') || spec.includes('cybersecurity');
+    const isMech = spec.includes('mechanical');
+    const isCivil = spec.includes('civil');
+    const isEce = spec.includes('electronics') || spec.includes('electrical');
+    if (isMech && ['software-engineer','data-scientist','ml-engineer','cybersecurity-analyst'].includes(career.id)) return 0.45;
+    if (isCse && ['mechanical-engineer','civil-engineer'].includes(career.id)) return 0.45;
+    if (isCivil && ['software-engineer','ml-engineer','cybersecurity-analyst'].includes(career.id)) return 0.45;
+    if (isEce && ['mechanical-engineer','civil-engineer'].includes(career.id)) return 0.45;
+  }
+
   // Directly accessible
   if (stream && career.streamAffinity?.includes(stream)) return 1;
   if (degreeFamily && career.familyAffinity?.some((f) => f.toLowerCase() === degreeFamily)) return 1;
@@ -139,6 +178,7 @@ function getEducationNote(profile, career, compat) {
 }
 
 // Careers that align with each graduation "direction" answer (Q5).
+// Family-aware boosts so BBA Finance + higher_studies doesn't surface unrelated medical/research careers.
 const DIRECTION_CAREERS = {
   start_working: ['marketing-manager', 'financial-analyst', 'business-analyst', 'software-engineer', 'nurse', 'pharmacist', 'teacher'],
   higher_studies: ['doctor', 'data-scientist', 'biotech-researcher', 'chartered-accountant', 'lawyer', 'psychologist'],
@@ -147,6 +187,86 @@ const DIRECTION_CAREERS = {
   business: ['entrepreneur', 'marketing-manager', 'financial-analyst'],
   abroad: ['software-engineer', 'data-scientist', 'nurse', 'cybersecurity-analyst'],
   research: ['biotech-researcher', 'data-scientist', 'environmental-scientist', 'agricultural-scientist', 'ml-engineer'],
+};
+
+// Higher studies granularity: postgraduate / professional routes that are academically appropriate per family.
+// Used to bias direction scoring and to surface via getHigherStudyOptions().
+export const HIGHER_STUDIES_BY_FAMILY = {
+  'Commerce & Finance': ['M.Com', 'MBA / PGDM', 'MSc Finance', 'CA / CFA / ACCA / FRM (professional)'],
+  'Business & Management': ['MBA / PGDM', 'MSc Finance / Business Analytics', 'Professional: CFA / FRM / CA where relevant'],
+  'Engineering': ['M.Tech', 'MS (abroad)', 'MBA', 'Specialized M.Tech (AI, Data, VLSI, etc.)'],
+  'Computer Applications': ['MCA', 'M.Tech / MS', 'MS abroad', 'Specialized master’s (AI, Data, Cybersecurity)'],
+  'Medicine & Healthcare': ['MD / MS / DNB', 'MDS / M.Pharm / MPT as per degree', 'DNB / Diploma specialization'],
+  'Science': ['M.Sc', 'M.Tech (for eligible)', 'MS abroad'],
+  'Arts & Humanities': ['MA', 'MSW / M.Phil', 'Specialized MA'],
+  'Law': ['LL.M', 'LL.M abroad'],
+  'Design & Creative': ['M.Des', 'MFA'],
+  'Agriculture & Environment': ['M.Sc Agriculture', 'M.Tech Agri / Env'],
+  'Education': ['M.Ed', 'B.Ed → M.Ed route'],
+  'Other Professional Programs': ['Relevant master’s / PG diploma'],
+};
+
+export function getHigherStudyOptions(family, degreeLabel = '', specialization = '') {
+  // Specialize further for medicine based on exact degree
+  if (family === 'Medicine & Healthcare') {
+    if (degreeLabel === 'MBBS') return ['MD / MS / DNB', 'Diploma specialization', 'MS abroad (USMLE/PLAB route)'];
+    if (degreeLabel === 'BDS') return ['MDS', 'MDS abroad'];
+    if (degreeLabel === 'B.Sc Nursing') return ['M.Sc Nursing', 'Post-BSc specialization', 'Nurse Practitioner abroad'];
+    if (degreeLabel === 'B.Pharm' || degreeLabel === 'Pharm.D') return ['M.Pharm', 'Pharm.D → PG specialization', 'MS Pharmaceutical Sciences'];
+    if (degreeLabel.includes('Physiotherapy') || degreeLabel.includes('BPT')) return ['MPT', 'Specialized physiotherapy master’s'];
+    if (degreeLabel.includes('Medical Laboratory')) return ['M.Sc MLT', 'Specialized diagnostics master’s'];
+    if (degreeLabel.includes('Radiology')) return ['M.Sc Radiology / Imaging', 'Specialized imaging master’s'];
+  }
+  if (family === 'Business & Management' && specialization) {
+    if (specialization === 'Finance') return ['MBA / PGDM (Finance)', 'MSc Finance', 'CFA / FRM / CA / ACCA'];
+    if (specialization === 'Marketing') return ['MBA / PGDM (Marketing)', 'Masters in Marketing / Brand', 'Digital Marketing specialization'];
+    if (specialization === 'Human Resources') return ['MBA / PGDM (HR)', 'Masters in HR / Labour Law'];
+  }
+  if (family === 'Commerce & Finance' && specialization === 'Finance') return ['MBA / PGDM', 'MSc Finance', 'CFA / FRM / CA'];
+  if (family === 'Engineering' && specialization) {
+    if (specialization.includes('Computer Science') || specialization.includes('AI') || specialization.includes('Data Science') || specialization.includes('Information Technology') || specialization.includes('Cybersecurity')) {
+      return ['M.Tech CSE / AI / Data', 'MS Computer Science (abroad)', 'MBA (if switching to product/management)'];
+    }
+    if (specialization.includes('Mechanical')) return ['M.Tech Mechanical', 'MS Mechanical (abroad)', 'MBA / Specialized MBA'];
+  }
+  return HIGHER_STUDIES_BY_FAMILY[family] || ['Relevant master’s / PG'];
+}
+
+const DIRECTION_FAMILY_BOOST = {
+  higher_studies: {
+    'Commerce & Finance': ['financial-analyst', 'chartered-accountant', 'business-analyst'],
+    'Business & Management': ['financial-analyst', 'business-analyst', 'marketing-manager', 'chartered-accountant'],
+    'Engineering': ['software-engineer', 'data-scientist', 'ml-engineer', 'mechanical-engineer', 'civil-engineer'],
+    'Computer Applications': ['software-engineer', 'data-scientist', 'ml-engineer', 'cybersecurity-analyst'],
+    'Medicine & Healthcare': ['doctor', 'pharmacist', 'nurse', 'biotech-researcher'],
+    'Science': ['biotech-researcher', 'data-scientist', 'environmental-scientist', 'agricultural-scientist'],
+    'Arts & Humanities': ['psychologist', 'lawyer', 'journalist', 'teacher'],
+    'Law': ['lawyer', 'civil-servant'],
+    'Design & Creative': ['ux-designer', 'architect'],
+    'Agriculture & Environment': ['agricultural-scientist', 'environmental-scientist'],
+    'Education': ['teacher', 'psychologist'],
+  },
+  specialize: {
+    'Medicine & Healthcare': ['doctor', 'nurse', 'pharmacist'],
+    'Commerce & Finance': ['chartered-accountant', 'financial-analyst'],
+    'Business & Management': ['chartered-accountant', 'financial-analyst', 'marketing-manager'],
+    'Engineering': ['ml-engineer', 'data-scientist', 'software-engineer', 'mechanical-engineer'],
+    'Computer Applications': ['ml-engineer', 'cybersecurity-analyst', 'data-scientist'],
+  },
+  government: {
+    'Medicine & Healthcare': ['doctor', 'nurse', 'pharmacist', 'civil-servant'],
+    'Commerce & Finance': ['chartered-accountant', 'civil-servant', 'financial-analyst'],
+    'Business & Management': ['civil-servant', 'business-analyst'],
+    'Engineering': ['civil-servant', 'mechanical-engineer', 'civil-engineer'],
+    'Computer Applications': ['civil-servant', 'software-engineer'],
+  },
+  abroad: {
+    'Engineering': ['software-engineer', 'data-scientist', 'ml-engineer'],
+    'Computer Applications': ['software-engineer', 'data-scientist', 'cybersecurity-analyst'],
+    'Medicine & Healthcare': ['nurse', 'doctor', 'pharmacist'],
+    'Commerce & Finance': ['financial-analyst', 'chartered-accountant'],
+    'Business & Management': ['business-analyst', 'marketing-manager'],
+  },
 };
 
 const DIRECTION_LABELS = {
@@ -184,10 +304,26 @@ export function scoreCareers(profile) {
     if (priority.includes('abroad') && ['software-engineer', 'nurse'].includes(career.id)) priorityBoost = 0.8;
     if (priority.includes('stable') && ['civil-servant', 'doctor', 'teacher'].includes(career.id)) priorityBoost = 0.9;
 
-    // Q5 direction (graduation flow): the stated goal must steer the outcome
+    // Q5 direction (graduation flow): the stated goal must steer the outcome — family-aware
     const direction = (profile.direction || '').toLowerCase();
-    if (DIRECTION_CAREERS[direction]?.includes(career.id)) {
-      priorityBoost = Math.max(priorityBoost, 0.95);
+    const familyBoostList = DIRECTION_FAMILY_BOOST[direction]?.[profile.family] || [];
+    const genericBoostList = DIRECTION_CAREERS[direction] || [];
+    if (familyBoostList.includes(career.id)) {
+      priorityBoost = Math.max(priorityBoost, 0.98);
+    } else if (genericBoostList.includes(career.id)) {
+      // generic boost is weaker if family has its own specific list
+      const hasFamilyList = !!DIRECTION_FAMILY_BOOST[direction]?.[profile.family];
+      priorityBoost = Math.max(priorityBoost, hasFamilyList ? 0.65 : 0.95);
+    }
+    // degreeStage influences urgency: final_year/recently_graduated + start_working boosts entry roles
+    if (profile.degreeStage === 'final_year' || profile.degreeStage === 'recently_graduated') {
+      if (direction === 'start_working' && ['financial-analyst','business-analyst','software-engineer','nurse','pharmacist','marketing-manager','teacher'].includes(career.id)) {
+        priorityBoost = Math.max(priorityBoost, 0.9);
+      }
+    }
+    // Stage + higher_studies: early years should still boost academic routes but not over-penalize
+    if ((profile.degreeStage === 'year_1' || profile.degreeStage === 'year_2') && direction === 'higher_studies') {
+      // keep boost already applied; don't add entry-job bias
     }
 
     const raw = iM * wInterest + sM * wStrength + wM * wWork + priorityBoost * wPriority + eC * wEdu;

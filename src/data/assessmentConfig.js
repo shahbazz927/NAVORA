@@ -98,6 +98,43 @@ export function specOptions(degreeLabel) {
 export function resolveProfile(degree, specialization) {
   return getDegreeProfile(degree, specialization);
 }
+
+// ── Graduation degree stage (stable IDs, duration-aware labels) ──
+export const GRAD_DEGREE_STAGE_IDS = ['year_1', 'year_2', 'year_3', 'final_year', 'recently_graduated'];
+const DEGREE_DURATION_YEARS = {
+  'MBBS': 5, 'BDS': 5, 'BAMS': 5, 'BHMS': 5, 'BUMS': 5, 'BSMS': 5, 'BNYS': 5,
+  'B.Sc Nursing': 4, 'BPT / Physiotherapy': 4, 'BOT / Occupational Therapy': 4,
+  'B.Pharm': 4, 'Pharm.D': 6, 'B.Sc Medical Laboratory Technology': 3, 'B.Sc Radiology / Medical Imaging': 3,
+  'B.Sc Optometry': 4, 'B.Sc Cardiac Care Technology': 3, 'B.Sc Anaesthesia Technology': 3, 'B.Sc Operation Theatre Technology': 3,
+  'B.Sc Respiratory Therapy': 3, 'B.Sc Dialysis Technology': 3, 'B.Sc Emergency / Trauma Care': 3, 'Other Healthcare Degree': 3,
+  'B.Tech / B.E.': 4, 'BCA': 3, 'B.Sc Computer Science': 3, 'B.Sc Information Technology': 3, 'B.Sc Data Science': 3, 'B.Sc Artificial Intelligence': 3, 'B.Sc Cybersecurity': 3, 'B.Sc Computer Applications': 3, 'Other Computing Degree': 3,
+  'B.Com': 3, 'BBA': 3, 'B.Sc': 3, 'BA': 3, 'Law': 3, 'Design / Creative': 4, 'Agriculture / Environment': 4,
+  'Education': 2, 'Hotel Management': 4, 'Hospitality': 3, 'Tourism': 3, 'Aviation': 3, 'Logistics': 3, 'Event Management': 3, 'Other': 3,
+};
+export function gradDegreeStageOptions(degreeLabel) {
+  const dur = DEGREE_DURATION_YEARS[degreeLabel] || 3;
+  const all = [
+    { value: 'year_1', label: '1st year' },
+    { value: 'year_2', label: '2nd year' },
+    { value: 'year_3', label: '3rd year' },
+    { value: 'final_year', label: 'Final year' },
+    { value: 'recently_graduated', label: 'Recently graduated' },
+  ];
+  if (dur <= 2) {
+    return all.filter((o) => o.value !== 'year_3');
+  }
+  if (dur === 3) {
+    // For 3-year programmes, 3rd year IS final year — hide duplicate 3rd year entry and keep final_year
+    return all.filter((o) => o.value !== 'year_3');
+  }
+  return all;
+}
+export function gradDegreeStageLabel(stageId) {
+  const all = gradDegreeStageOptions('__any__');
+  // fallback map covers filtered cases too
+  const map = { year_1: '1st year', year_2: '2nd year', year_3: '3rd year', final_year: 'Final year', recently_graduated: 'Recently graduated' };
+  return map[stageId] || stageId;
+}
 // ── Class 12 (student wording) ───────────────────────────────
 export const CLASS12_STREAM_HEADING = 'First, what did you study in Class 11 and 12?';
 export const CLASS12_STREAMS = [
@@ -324,39 +361,77 @@ export const PARENT_CLASS10_HEADINGS = {
 // ── Result builders ──────────────────────────────────────────
 export function buildGraduationResult(answers, isParent = false) {
   const degree = answers.degree;
+  const family = answers.family || '';
   const specialization = answers.specialization || degree || '';
+  const degreeStage = answers.degreeStage || answers.degree_stage || '';
   const profile = degree ? resolveProfile(degree, specialization) : null;
   const subject = isParent ? 'your child' : 'you';
+  const subjectPoss = isParent ? "your child's" : 'your';
 
   if (!profile) {
     return {
       careers: [], strengths: [], strengthen: [],
       nextText: `Choose a degree first — then ${subject} can see a tailored career direction.`,
+      profile: null, degreeStage,
     };
   }
 
+  const isOther = degree === 'Other' || specialization === 'Other' || profile.id === 'other' || profile.id?.startsWith('other_');
   const selectedSkillIds = answers.skills || [];
+  const selectedInterests = answers.interests || [];
   const skillMap = {};
   (Object.values(profile.skills || {}).flat() || []).forEach((s) => { skillMap[s.value] = s.label; });
+  const interestMap = {};
+  (profile.interests || []).forEach((i) => { interestMap[i.value] = i.label; });
 
   const profileLabel = specialization && specialization !== degree ? specialization : degree;
-  const interests = (answers.interests || []).slice(0, 3);
+  const stageLabel = degreeStage ? gradDegreeStageLabel(degreeStage) : '';
+  const interestLabels = selectedInterests.map((v) => interestMap[v] || v);
+  const skillLabels = selectedSkillIds.map((v) => skillMap[v] || v);
 
-  const careers = (profile.careers || []).slice(0, 4).map((c) => {
+  // Score each career using composite signal: interest relevance + skill overlap + direction is handled via filtering/boost outside, but here avoid single-skill strong fit
+  const scoredCareers = (profile.careers || []).map((c) => {
     const required = profile.requiredSkills?.[c.value] || [];
     const overlap = required.filter((s) => selectedSkillIds.includes(s)).length;
-    const ratio = required.length ? overlap / required.length : 0;
+    const interestOverlap = selectedInterests.filter((i) => {
+      // career value often not directly interest, so use required skills as proxy plus name match
+      return false;
+    }).length;
+    // Use skill overlap + interest count jointly for fit; don't let 1 skill give strong
+    let score = 0;
+    if (required.length) score = overlap / required.length;
+    // interest broadens: if any selected interest, give base 0.2 so Worth exploring not empty
+    const hasInterestSignal = selectedInterests.length > 0;
     let fit = 'Worth exploring';
-    if (ratio >= 0.6 || overlap >= 3) fit = 'Strong fit';
-    else if (overlap >= 1) fit = 'Good option';
+    // Need at least 2 matching skills or 60% ratio to be Strong
+    if ((overlap >= 2 && score >= 0.5) || overlap >= 3) fit = 'Strong match';
+    else if (overlap >= 1 || hasInterestSignal) fit = 'Good match';
+    // For Other, cap at Good match to reduce false specificity
+    if (isOther && fit === 'Strong match') fit = 'Good match';
+    const requiredLabels = required.map((s) => skillMap[s] || s);
+    const missing = required.filter((s) => !selectedSkillIds.includes(s));
+    // Build why: explain which signals influenced
+    const whyParts = [];
+    whyParts.push(`${profileLabel} background`);
+    if (interestLabels.length) whyParts.push(`interest in ${interestLabels.slice(0, 2).join(', ')}`);
+    if (skillLabels.length) whyParts.push(`strength in ${skillLabels.slice(0, 2).join(', ')}`);
+    if (degreeStage) whyParts.push(`${stageLabel}`);
+    const why = `${whyParts.join(' + ')} points toward this route${isOther ? ' — broaden with family-level guidance' : ''}.`;
     return {
       label: c.label,
       value: c.value,
       fit,
-      why: `A natural next move for ${profileLabel}${interests.length ? `, matching the areas that interest ${subject} most` : ''}.`,
-      missing: required.filter((s) => !selectedSkillIds.includes(s)),
+      why,
+      missing,
+      requiredLabels,
+      overlap,
+      score,
     };
   });
+
+  // Sort by overlap/score desc but keep deterministic: strong first
+  scoredCareers.sort((a, b) => b.overlap - a.overlap || b.score - a.score);
+  const careers = scoredCareers.slice(0, 4);
 
   const topCareers = careers.slice(0, 2);
   const strengthenSet = [];
@@ -366,14 +441,21 @@ export function buildGraduationResult(answers, isParent = false) {
   const strengthen = strengthenSet.slice(0, 6).map((s) => skillMap[s] || s);
   const strengths = selectedSkillIds.map((s) => skillMap[s] || s);
 
+  // Build nextText with direction + stage context
   let nextText = `Build on the strengths ${isParent ? 'they already' : 'you already'} have and take a concrete step toward ${topCareers[0]?.label || 'your chosen direction'}.`;
   if (answers.direction) {
-    const dir = gradDirectionForFamily(answers.family).find((d) => d.value === answers.direction)
+    const dir = gradDirectionForFamily(family).find((d) => d.value === answers.direction)
       || GRAD_DIRECTION.find((d) => d.value === answers.direction);
-    if (dir) nextText = `${dir.label} is ${isParent ? 'your child’s' : 'your'} goal — start by closing the key skill gaps above and getting relevant practical experience.`;
+    if (dir) {
+      const stageHint = degreeStage === 'year_1' || degreeStage === 'year_2' ? ' — there is time to build foundations with projects and internships.' : degreeStage === 'final_year' || degreeStage === 'recently_graduated' ? ' — focus on closing skill gaps and applying to relevant roles.' : '.';
+      nextText = `${dir.label} is ${subjectPoss} goal — start by closing the key skill gaps above and getting relevant practical experience${stageHint}`;
+      if (isOther) nextText += ' Since the degree was marked as Other, treat this as broad guidance and confirm with family-level options.';
+    }
+  } else if (isOther) {
+    nextText += ' (Broad guidance — degree was marked as Other.)';
   }
 
-  return { careers, strengths, strengthen, nextText };
+  return { careers, strengths, strengthen, nextText, profile: { family, degree, specialization, degreeStage, interests: selectedInterests, skills: selectedSkillIds }, degreeStage, isOther };
 }
 
 // When a student is still exploring (no specific interest), their answer to

@@ -18,6 +18,7 @@ import {
   degreeHasSpecializations,
   specOptions,
   resolveProfile,
+  gradDegreeStageOptions,
   gradDirectionForFamily,
   CLASS12_STREAMS,
   CLASS12_STREAM_DIRECTIONS,
@@ -60,8 +61,8 @@ const STEPS_BY_FLOW = {
   student_class12: ['stream', 'subjects', 'interest', 'work', 'attract', 'skills', 'priority'],
   parent_class12: ['stream', 'subjects', 'interest', 'work', 'attract', 'priority', 'clarity'],
   parent_class10: ['enjoy', 'strongest', 'future', 'clarity', 'priority'],
-  student_graduation: ['family', 'degree', 'interests', 'skills', 'direction'],
-  parent_graduation: ['family', 'degree', 'interests', 'skills', 'direction'],
+  student_graduation: ['family', 'degree', 'degreeStage', 'interests', 'skills', 'direction'],
+  parent_graduation: ['family', 'degree', 'degreeStage', 'interests', 'skills', 'direction'],
 };
 
 const isMultiKey = (k) => k === 'skills' || k === 'interests' || k === 'enjoy' || k === 'strongest' || k === 'subjects';
@@ -271,12 +272,21 @@ export default function AssessmentFlow() {
       if (key === 'family') {
         delete next.degree;
         delete next.specialization;
+        delete next.degreeStage;
       }
       // Re-derive the specialization whenever the degree changes so a stale
       // one (from a previously chosen degree) can never contaminate the result.
       if (key === 'degree') {
         if (degreeHasSpecializations(value)) delete next.specialization;
         else next.specialization = value;
+        delete next.degreeStage;
+      }
+      if (key === 'degreeStage') {
+        // stage change should not drop interests/skills — they remain valid
+        return next;
+      }
+      if (key === 'specialization') {
+        delete next.degreeStage;
       }
       const cutoff = orderIndex(key);
       for (const k of Object.keys(next)) {
@@ -360,6 +370,9 @@ export default function AssessmentFlow() {
         };
     if (k === 'family') return { text: p.family, sub: p.familySub };
     if (k === 'degree') return { text: p.degree, sub: p.degreeSub };
+    if (k === 'degreeStage') return speaksParent
+      ? { text: 'What year is your child currently in?', sub: 'This helps us keep advice practical for their stage.' }
+      : { text: 'What year are you currently in?', sub: 'This helps us keep advice practical for your stage.' };
     if (k === 'interests') return { text: p.interests, sub: p.interestsSub };
     if (k === 'skills') return { text: p.skills, sub: p.skillsSub };
     if (k === 'direction') return { text: p.direction, sub: '' };
@@ -409,6 +422,8 @@ export default function AssessmentFlow() {
         return strOpts(GRADUATION_FAMILIES);
       case 'degree':
         return degreesForFamily(answers.family || '').map((d) => ({ value: d.label, label: d.label }));
+      case 'degreeStage':
+        return gradDegreeStageOptions(answers.degree || '');
       case 'specialization':
         return specOptions(answers.degree || '');
       case 'interests':

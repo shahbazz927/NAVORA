@@ -16,6 +16,7 @@ export function contextFor(flowKey, answers){
     if(answers.family) out.push(`Field: ${answers.family}`);
     if(answers.degree) out.push(`Degree: ${answers.degree}`);
     if(answers.specialization && answers.specialization!==answers.degree) out.push(`Specialization: ${answers.specialization}`);
+    if(answers.degreeStage) out.push(`Stage: ${pretty(answers.degreeStage)}`);
     if(Array.isArray(answers.interests) && answers.interests.length) out.push(`Interests: ${answers.interests.slice(0,2).map(pretty).join(' · ')}`);
     if(answers.direction) out.push(`Goal: ${pretty(answers.direction)}`);
   } else if(flowKey==='parent_class10'){
