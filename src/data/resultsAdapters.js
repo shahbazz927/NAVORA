@@ -43,13 +43,23 @@ export function headerFor(flowKey){
   return { eyebrow:'Your results', title:'Your Direction', subtitle:'Based on your answers, here are the paths worth considering.' };
 }
 
-export function nextStepsForResult(flowKey, primaryCareer, gradProfile){
-  // Contextual next steps — not generic
+export function nextStepsForResult(flowKey, primaryCareer, gradProfile, answersStage){
+  // Contextual next steps — not generic, stage-aware for graduation
   if(flowKey==='parent_class10'){
     return { month: ['Explore the recommended stream subjects together','Try a small project in that stream','Talk to a Class 11–12 student in that stream'], quarter:['Compare MPC / BiPC / Commerce / Arts subjects','Research future career areas for that stream','Visit an open day or lab / studio'], later:['Shortlist target subjects for Classes 11–12','Check entrance paths after Class 12','Revisit after a term of exploration'] };
   }
   if(flowKey?.endsWith('graduation')){
     const role = primaryCareer?.title || 'your top direction';
+    const stage = answersStage || gradProfile?.degreeStage || '';
+    if (stage === 'year_1' || stage === 'year_2') {
+      return { month:[`Build foundations for ${role} — one relevant project`, `Strengthen one missing skill for ${role}`, `Talk to a senior or professor about ${role}`], quarter:['Complete a small portfolio project','Apply to 1–2 beginner internships','Get feedback on your progress'], later:['Explore specialization vs higher-study routes','Plan a skill roadmap for next year','Revisit after a term'] };
+    }
+    if (stage === 'final_year') {
+      return { month:[`Prepare placement / portfolio for ${role}`, `Strengthen one missing skill for ${role}`, `Talk to one person working as ${role}`], quarter:['Apply to 3–5 placements / internships','Get CV / portfolio reviewed','Prepare for interviews or entrance exams'], later:['Finalize higher-study vs entry-job decision','Plan next 6 months','Revisit after offers'] };
+    }
+    if (stage === 'recently_graduated') {
+      return { month:[`Apply to entry roles or postgraduate programmes for ${role}`, `Close one key skill gap for ${role}`, `Talk to a recruiter or admissions contact for ${role}`], quarter:['Submit 3–5 targeted applications','Prepare portfolio / entrance exam','Get mentor review of applications'], later:['Compare offers vs higher-study routes','Plan first-year roadmap','Revisit after real exposure'] };
+    }
     return { month:[`Research entry-level requirements for ${role}`, `Strengthen one missing skill for ${role}`, `Talk to one person working as ${role}`], quarter:['Build a small, relevant project','Apply to 3–5 internships or trainee roles','Get feedback on your CV from a mentor'], later:['Compare specialization vs higher-study routes','Plan a 6-month skill + experience roadmap','Revisit this guidance after real exposure'] };
   }
   // class12 default — adapt to stream/interest

@@ -441,13 +441,17 @@ export function buildGraduationResult(answers, isParent = false) {
   const strengthen = strengthenSet.slice(0, 6).map((s) => skillMap[s] || s);
   const strengths = selectedSkillIds.map((s) => skillMap[s] || s);
 
-  // Build nextText with direction + stage context
+  // Build nextText with direction + stage context — stage determines guidance
   let nextText = `Build on the strengths ${isParent ? 'they already' : 'you already'} have and take a concrete step toward ${topCareers[0]?.label || 'your chosen direction'}.`;
   if (answers.direction) {
-    const dir = gradDirectionForFamily(family).find((d) => d.value === answers.direction)
-      || GRAD_DIRECTION.find((d) => d.value === answers.direction);
+    const resolved = getGraduationDirections({ family, degree, specialization, degreeStage }).find((d) => d.value === answers.direction) || GRAD_DIRECTION.find((d) => d.value === answers.direction) || gradDirectionForFamily(family).find((d) => d.value === answers.direction);
+    const dir = resolved;
     if (dir) {
-      const stageHint = degreeStage === 'year_1' || degreeStage === 'year_2' ? ' — there is time to build foundations with projects and internships.' : degreeStage === 'final_year' || degreeStage === 'recently_graduated' ? ' — focus on closing skill gaps and applying to relevant roles.' : '.';
+      let stageHint = '';
+      if (degreeStage === 'year_1' || degreeStage === 'year_2') stageHint = ' — focus on foundations, relevant projects, internships and skill building.';
+      else if (degreeStage === 'final_year') stageHint = ' — focus on placements, portfolio, internships, applications, interview preparation and higher-study planning.';
+      else if (degreeStage === 'recently_graduated') stageHint = ' — focus on job applications, postgraduate applications, professional qualifications, portfolio/resume and relevant entrance exams.';
+      else stageHint = '.';
       nextText = `${dir.label} is ${subjectPoss} goal — start by closing the key skill gaps above and getting relevant practical experience${stageHint}`;
       if (isOther) nextText += ' Since the degree was marked as Other, treat this as broad guidance and confirm with family-level options.';
     }
@@ -763,6 +767,201 @@ export const GRAD_DIRECTION = [
 ];
 
 /**
+ * Degree-aware direction resolver — the authoritative source for what a
+ * graduate can do next. Profile/degree is checked first; family is only a
+ * fallback. Values stay within GRAD_DIRECTION so scoring keeps working —
+ * only labels are contextualized.
+ */
+const GRAD_DIRECTIONS_BY_PROFILE = {
+  // ── Medicine & Healthcare — strictly separated
+  'mbbs': [
+    { value: 'start_working', label: 'Start clinical practice' },
+    { value: 'specialize', label: 'Prepare for postgraduate medical specialization (MD / MS / DNB)' },
+    { value: 'higher_studies', label: 'Higher studies in medicine (MD / MS / DNB)' },
+    { value: 'research', label: 'Medical research' },
+    { value: 'government', label: 'Government hospital / public health' },
+    { value: 'abroad', label: 'Practice or study abroad (USMLE / PLAB…)' },
+    { value: 'business', label: 'Healthcare administration / venture' },
+    { value: 'still_exploring', label: 'Still exploring' },
+  ],
+  'bds': [
+    { value: 'start_working', label: 'Start dental practice' },
+    { value: 'specialize', label: 'Prepare for postgraduate dental specialization (MDS)' },
+    { value: 'higher_studies', label: 'Higher studies — MDS / dental postgraduate' },
+    { value: 'research', label: 'Dental research' },
+    { value: 'government', label: 'Dental public-health / government' },
+    { value: 'abroad', label: 'Work or study abroad in dentistry' },
+    { value: 'business', label: 'Start your own dental practice / venture' },
+    { value: 'still_exploring', label: 'Still exploring' },
+  ],
+  'bams': [
+    { value: 'start_working', label: 'Start Ayurvedic practice' },
+    { value: 'specialize', label: 'Postgraduate specialization (MD Ayurveda)' },
+    { value: 'higher_studies', label: 'Higher studies — MD Ayurveda' },
+    { value: 'research', label: 'Ayurvedic research' },
+    { value: 'abroad', label: 'Work or study abroad (Ayurveda / wellness)' },
+    { value: 'still_exploring', label: 'Still exploring' },
+  ],
+  'bhms': [
+    { value: 'start_working', label: 'Start homeopathic practice' },
+    { value: 'specialize', label: 'Postgraduate specialization (MD Homeopathy)' },
+    { value: 'higher_studies', label: 'Higher studies — MD Homeopathy' },
+    { value: 'research', label: 'Homeopathic research' },
+    { value: 'abroad', label: 'Work or study abroad' },
+    { value: 'still_exploring', label: 'Still exploring' },
+  ],
+  'bums': [
+    { value: 'start_working', label: 'Start Unani practice' },
+    { value: 'specialize', label: 'Postgraduate specialization (MD Unani)' },
+    { value: 'higher_studies', label: 'Higher studies — MD Unani' },
+    { value: 'research', label: 'Unani research' },
+    { value: 'still_exploring', label: 'Still exploring' },
+  ],
+  'bsms': [
+    { value: 'start_working', label: 'Start Siddha practice' },
+    { value: 'specialize', label: 'Postgraduate specialization (MD Siddha)' },
+    { value: 'higher_studies', label: 'Higher studies — MD Siddha' },
+    { value: 'research', label: 'Siddha research' },
+    { value: 'still_exploring', label: 'Still exploring' },
+  ],
+  'bnys': [
+    { value: 'start_working', label: 'Start naturopathy / yoga practice' },
+    { value: 'specialize', label: 'Postgraduate specialization (MD Naturopathy)' },
+    { value: 'higher_studies', label: 'Higher studies — MD Naturopathy' },
+    { value: 'research', label: 'Naturopathy research' },
+    { value: 'still_exploring', label: 'Still exploring' },
+  ],
+  'bsc_nursing': [
+    { value: 'start_working', label: 'Start nursing practice' },
+    { value: 'specialize', label: 'Postgraduate nursing specialization (M.Sc Nursing)' },
+    { value: 'higher_studies', label: 'Higher studies — M.Sc Nursing' },
+    { value: 'government', label: 'Government / public-health nursing' },
+    { value: 'research', label: 'Nursing research' },
+    { value: 'abroad', label: 'Work or study abroad in nursing' },
+    { value: 'still_exploring', label: 'Still exploring' },
+  ],
+  'bpt': [
+    { value: 'start_working', label: 'Start physiotherapy practice' },
+    { value: 'specialize', label: 'Postgraduate physiotherapy specialization (MPT)' },
+    { value: 'higher_studies', label: 'Higher studies — MPT' },
+    { value: 'research', label: 'Physiotherapy / rehabilitation research' },
+    { value: 'abroad', label: 'Work or study abroad in physiotherapy' },
+    { value: 'still_exploring', label: 'Still exploring' },
+  ],
+  'bot': [
+    { value: 'start_working', label: 'Start occupational therapy practice' },
+    { value: 'specialize', label: 'Postgraduate OT specialization' },
+    { value: 'higher_studies', label: 'Higher studies — MOT' },
+    { value: 'research', label: 'OT research' },
+    { value: 'still_exploring', label: 'Still exploring' },
+  ],
+  'bpharm': [
+    { value: 'start_working', label: 'Start in pharmacy practice' },
+    { value: 'higher_studies', label: 'Higher studies — M.Pharm' },
+    { value: 'specialize', label: 'Pharmaceutical specialization / industry' },
+    { value: 'research', label: 'Clinical / pharma research' },
+    { value: 'government', label: 'Regulatory / government pharmacy roles' },
+    { value: 'abroad', label: 'Work or study abroad (pharmacy / pharma)' },
+    { value: 'still_exploring', label: 'Still exploring' },
+  ],
+  'pharmd': [
+    { value: 'start_working', label: 'Start clinical pharmacy practice' },
+    { value: 'higher_studies', label: 'Higher studies — M.Pharm / specialization' },
+    { value: 'research', label: 'Clinical research / pharmacovigilance' },
+    { value: 'abroad', label: 'Work or study abroad' },
+    { value: 'still_exploring', label: 'Still exploring' },
+  ],
+  'bsc_medical_lab': [
+    { value: 'start_working', label: 'Start as medical laboratory technologist' },
+    { value: 'higher_studies', label: 'Higher studies — M.Sc MLT' },
+    { value: 'research', label: 'Diagnostic / lab research' },
+    { value: 'government', label: 'Government / hospital lab roles' },
+    { value: 'still_exploring', label: 'Still exploring' },
+  ],
+  'bsc_radiology': [
+    { value: 'start_working', label: 'Start as radiology / imaging technologist' },
+    { value: 'higher_studies', label: 'Higher studies — M.Sc Radiology / Imaging' },
+    { value: 'research', label: 'Imaging research' },
+    { value: 'still_exploring', label: 'Still exploring' },
+  ],
+  'bsc_optometry': [
+    { value: 'start_working', label: 'Start optometry practice' },
+    { value: 'higher_studies', label: 'Higher studies — M.Optom' },
+    { value: 'specialize', label: 'Specialize (low vision, contact lens, etc.)' },
+    { value: 'still_exploring', label: 'Still exploring' },
+  ],
+  'bsc_cardiac': [
+    { value: 'start_working', label: 'Start as cardiac care technologist' },
+    { value: 'higher_studies', label: 'Higher studies in cardiac technology' },
+    { value: 'research', label: 'Cardiac research' },
+    { value: 'still_exploring', label: 'Still exploring' },
+  ],
+  'bsc_anaesthesia': [
+    { value: 'start_working', label: 'Start as anaesthesia technologist' },
+    { value: 'higher_studies', label: 'Higher studies in anaesthesia technology' },
+    { value: 'still_exploring', label: 'Still exploring' },
+  ],
+  'bsc_ot_technology': [
+    { value: 'start_working', label: 'Start as operation theatre technologist' },
+    { value: 'higher_studies', label: 'Higher studies in OT technology' },
+    { value: 'still_exploring', label: 'Still exploring' },
+  ],
+  'bsc_respiratory': [
+    { value: 'start_working', label: 'Start as respiratory therapist' },
+    { value: 'higher_studies', label: 'Higher studies in respiratory care' },
+    { value: 'still_exploring', label: 'Still exploring' },
+  ],
+  'bsc_dialysis': [
+    { value: 'start_working', label: 'Start as dialysis technologist' },
+    { value: 'higher_studies', label: 'Higher studies in dialysis technology' },
+    { value: 'still_exploring', label: 'Still exploring' },
+  ],
+  'bsc_emergency': [
+    { value: 'start_working', label: 'Start as emergency / trauma care specialist' },
+    { value: 'higher_studies', label: 'Higher studies in emergency medicine' },
+    { value: 'still_exploring', label: 'Still exploring' },
+  ],
+  // ── Engineering profiles
+  'btech_cse': [
+    { value: 'start_working', label: 'Start a software / IT career' },
+    { value: 'specialize', label: 'Specialize in AI / Data / Cloud / Security' },
+    { value: 'higher_studies', label: 'Higher studies — M.Tech / MS (CSE)' },
+    { value: 'research', label: 'Research (PhD in CS / AI)' },
+    { value: 'government', label: 'Government / PSU technology roles' },
+    { value: 'abroad', label: 'Work or study abroad (tech hubs)' },
+    { value: 'business', label: 'Start a technology venture' },
+    { value: 'still_exploring', label: 'Still exploring' },
+  ],
+  'btech_mechanical': [
+    { value: 'start_working', label: 'Start as mechanical / design engineer' },
+    { value: 'specialize', label: 'Specialize in EV / Robotics / Manufacturing' },
+    { value: 'higher_studies', label: 'Higher studies — M.Tech Mechanical' },
+    { value: 'government', label: 'Government / PSU (GATE / DRDO / PSC)' },
+    { value: 'abroad', label: 'Work or study abroad' },
+    { value: 'business', label: 'Start your own firm / consultancy' },
+    { value: 'still_exploring', label: 'Still exploring' },
+  ],
+  // ── Business & Commerce
+  'bba_finance': [
+    { value: 'start_working', label: 'Start a finance / business role' },
+    { value: 'higher_studies', label: 'Higher studies — MBA / PGDM (Finance)' },
+    { value: 'specialize', label: 'Specialize — CFA / FRM / CA' },
+    { value: 'government', label: 'Banking / govt finance (IBPS, RBI, SSC)' },
+    { value: 'abroad', label: 'Work or study abroad (finance)' },
+    { value: 'business', label: 'Start a business / venture' },
+    { value: 'still_exploring', label: 'Still exploring' },
+  ],
+  'bba_marketing': [
+    { value: 'start_working', label: 'Start a marketing / brand role' },
+    { value: 'higher_studies', label: 'Higher studies — MBA / PGDM (Marketing)' },
+    { value: 'specialize', label: 'Specialize in digital / brand / consumer' },
+    { value: 'abroad', label: 'Work or study abroad (marketing)' },
+    { value: 'business', label: 'Start your own venture' },
+    { value: 'still_exploring', label: 'Still exploring' },
+  ],
+};
+
+/**
  * Graduation "career direction" options are tailored to the student's field, so
  * a Mechanical Engineering student and a Law student never see the same list.
  *
@@ -892,4 +1091,21 @@ export const GRAD_DIRECTION_BY_FAMILY = {
  */
 export function gradDirectionForFamily(family = '') {
   return GRAD_DIRECTION_BY_FAMILY[family] || GRAD_DIRECTION;
+}
+export function getGraduationDirections({ family = '', degree = '', specialization = '', degreeStage = '' } = {}) {
+  const profile = degree ? resolveProfile(degree, specialization || degree) : null;
+  if (profile?.id && GRAD_DIRECTIONS_BY_PROFILE[profile.id]) return GRAD_DIRECTIONS_BY_PROFILE[profile.id];
+  // Spec-specific fallbacks not covered above
+  if (degree === 'B.Tech / B.E.' && specialization) {
+    const spec = specialization.toLowerCase();
+    if (spec.includes('computer') || spec.includes('ai') || spec.includes('data') || spec.includes('cybersecurity') || spec.includes('information')) return GRAD_DIRECTIONS_BY_PROFILE['btech_cse'];
+    if (spec.includes('mechanical')) return GRAD_DIRECTIONS_BY_PROFILE['btech_mechanical'];
+  }
+  if (degree === 'BBA' && specialization) {
+    if (specialization === 'Finance') return GRAD_DIRECTIONS_BY_PROFILE['bba_finance'];
+    if (specialization === 'Marketing') return GRAD_DIRECTIONS_BY_PROFILE['bba_marketing'];
+  }
+  // Family fallback
+  if (family && GRAD_DIRECTION_BY_FAMILY[family]) return GRAD_DIRECTION_BY_FAMILY[family];
+  return GRAD_DIRECTION;
 }

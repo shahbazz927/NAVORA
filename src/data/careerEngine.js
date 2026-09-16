@@ -128,16 +128,31 @@ function educationCompatibility(profile, career) {
     const isPhysio = dl.includes('physiotherapy') || dl.includes('bpt');
     const isLab = dl.includes('laboratory') || dl.includes('medical laboratory');
     const isRadio = dl.includes('radiology') || dl.includes('imaging');
-    if (isNursing && career.id === 'doctor') return 0.25;
-    if (isNursing && career.id === 'pharmacist') return 0.25;
-    if (isMbbs && career.id === 'nurse') return 0.45; // MBBS shouldn't surface nursing as top
-    if (isPharm && career.id === 'doctor') return 0.25;
-    if (isPharm && career.id === 'nurse') return 0.25;
-    if (isPhysio && career.id === 'doctor') return 0.25;
-    if (isPhysio && career.id === 'pharmacist') return 0.25;
+    const isBams = dl === 'bams';
+    const isBhms = dl === 'bhms';
+    const isBums = dl === 'bums';
+    const isBsms = dl === 'bsms';
+    const isBnys = dl === 'bnys';
+    const isOpto = dl.includes('optometry');
+    const isCardiac = dl.includes('cardiac');
+    const isAnaesth = dl.includes('anaesthesia');
+    const isOt = dl.includes('operation theatre');
+    const isResp = dl.includes('respiratory');
+    const isDial = dl.includes('dialysis');
+    const isEmerg = dl.includes('emergency');
+    const isBot = dl.includes('occupational') || dl === 'bot';
+    // Nursing strictly nursing
+    if (isNursing && ['doctor','pharmacist'].includes(career.id)) return 0.25;
+    if (isMbbs && career.id === 'nurse') return 0.25;
+    if (isPharm && ['doctor','nurse'].includes(career.id)) return 0.25;
+    if (isPhysio && ['doctor','pharmacist','nurse'].includes(career.id)) return 0.25;
+    if (isBds && ['doctor','pharmacist','nurse'].includes(career.id)) return 0.25;
     if (isLab && ['doctor','nurse','pharmacist'].includes(career.id)) return 0.25;
     if (isRadio && ['doctor','nurse','pharmacist'].includes(career.id)) return 0.25;
-    if (isBds && career.id === 'doctor') return 0.45;
+    // AYUSH strictly their own
+    if ((isBams||isBhms||isBums||isBsms||isBnys) && ['doctor','nurse','pharmacist'].includes(career.id)) return 0.25;
+    if (isOpto && ['doctor','nurse','pharmacist'].includes(career.id)) return 0.25;
+    if ((isCardiac||isAnaesth||isOt||isResp||isDial||isEmerg||isBot) && ['doctor','nurse','pharmacist'].includes(career.id)) return 0.25;
   }
 
   // ── Engineering specialization-aware: CSE vs Mechanical shouldn't cross ──
@@ -147,10 +162,10 @@ function educationCompatibility(profile, career) {
     const isMech = spec.includes('mechanical');
     const isCivil = spec.includes('civil');
     const isEce = spec.includes('electronics') || spec.includes('electrical');
-    if (isMech && ['software-engineer','data-scientist','ml-engineer','cybersecurity-analyst'].includes(career.id)) return 0.45;
-    if (isCse && ['mechanical-engineer','civil-engineer'].includes(career.id)) return 0.45;
-    if (isCivil && ['software-engineer','ml-engineer','cybersecurity-analyst'].includes(career.id)) return 0.45;
-    if (isEce && ['mechanical-engineer','civil-engineer'].includes(career.id)) return 0.45;
+    if (isMech && ['software-engineer','data-scientist','ml-engineer','cybersecurity-analyst'].includes(career.id)) return 0.25;
+    if (isCse && ['mechanical-engineer','civil-engineer'].includes(career.id)) return 0.25;
+    if (isCivil && ['software-engineer','ml-engineer','cybersecurity-analyst'].includes(career.id)) return 0.25;
+    if (isEce && ['mechanical-engineer','civil-engineer'].includes(career.id)) return 0.25;
   }
 
   // Directly accessible
